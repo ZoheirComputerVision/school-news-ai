@@ -91,23 +91,14 @@ class JsonDB {
   }
 
   _saveNow(name) {
-    try {
-      this._save(name);
-      delete this.saveQueue[name];
-      console.log(`[DB] حفظ فوري: ${name}`);
-    } catch (e) {
-      console.error(`[DB] فشل الحفظ الفوري ${name}:`, e.message);
-    }
+    this._save(name);
+    delete this.saveQueue[name];
   }
 
   _save(name) {
-    try {
-      const fp = path.join(this.dir, `${name}.json`);
-      fs.writeFileSync(fp, JSON.stringify(this.tables[name] || []), 'utf-8');
-      this.cache.invalidate(`query:${name}`);
-    } catch (e) {
-      console.error(`[DB] فشل كتابة ${name}.json:`, e.message);
-    }
+    const fp = path.join(this.dir, `${name}.json`);
+    fs.writeFileSync(fp, JSON.stringify(this.tables[name] || []), 'utf-8');
+    this.cache.invalidate(`query:${name}`);
   }
 
   _debouncedSave(name) {
