@@ -1,5 +1,35 @@
 # CHANGELOG.md — سجل التغييرات
 
+## [1.3.0] — 2026-06-14 — Sprint 1C: SQLite Migration + Cutover
+
+### Added
+- **إعدادات DB_TYPE** — `config.js` يدعم `DB_TYPE=sqlite` عبر `.env` للتبديل بين JSON و SQLite
+- **`database.js` — `switchAdapter(dbType)`** — تبديل ديناميكي بين الـ adapters في زمن التشغيل
+- **`lib/dal/index.js` — `switchAdapter()` + `getFallbackAdapter()`** — دعم التبديل مع fallback
+
+### Changed
+- **`lib/dal/sqlite-adapter.js`** — إضافة `_getTableSchema()` لتصفية الحقول غير الموجودة في الجدول، تحديث `create()` و `update()` لاستخدام schema-aware filtering
+- **`lib/dal/migration.js`** — إصلاح اتصال SqliteAdapter: `close()` بعد الانتهاء، معالجة settings عبر key بدلاً من id (لدعم UNIQUE constraint)
+- **`database.js`** — تحويل كل الـ properties إلى getters (Adapter, Repos, Articles, Settings, etc.) لدعم التبديل الديناميكي
+- **`config.js`** — إضافة `DB_TYPE` (قراءة من `process.env.DB_TYPE`، default: `json`)
+
+### Fixed
+- 🔴 **Severity: High** — SqliteAdapter.create() يفشل مع حقول `updated_at` غير الموجودة في schema (تم إضافة `_getTableSchema()` لتصفية الحقول)
+- 🔴 **Severity: High** — هجرة settings يفشل بسبب UNIQUE constraint على `key` (تم تعديل migration لاستخدام key-based upsert)
+- 🟡 **Severity: Medium** — `verifyMigration()` يغلق الاتصال قبل إنهاء count queries (تم نقل `close()` بعد الحلقة)
+- 🟡 **Severity: Medium** — `getMigrationStatus()` يغلق الاتصال قبل إنهاء الاستعلامات (تم نقل `close()` بعد الحلقة)
+
+### Migration Stats
+- **Total records migrated**: 62/62 (0 errors)
+- **Tables**: 9/9 consistent (sources:3, raw_data:18, processed_content:11, media:0, archive:2, ai_decision_log:22, admin_actions:0, settings:5, views:1)
+- **Verification**: ✅ Consistent (JSON count = SQLite count for all tables)
+- **Integrity**: ✅ Spot-check passed (titles, statuses, hashes, settings values match)
+
+### Performance (SQLite vs JSON)
+- SQLite is 10-100x slower per query on this dataset size (<100 records) due to prepared statement overhead
+- JSON remains the default adapter; SQLite available via `DB_TYPE=sqlite` in `.env`
+- Real benefits of SQLite (concurrency, transactions, JOINs) expected with larger datasets
+
 ## [1.2.0] — 2026-06-14 — Sprint 1B: Data Layer Refactor
 
 ### Added

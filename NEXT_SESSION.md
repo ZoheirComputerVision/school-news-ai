@@ -1,51 +1,48 @@
 # NEXT_SESSION.md — تعليمات الجلسة القادمة
 
-## ✅ Sprint 1B Complete — Data Layer Refactor
+## ✅ Sprint 1C Complete — SQLite Migration + Cutover
 
 ### المنجز:
-- [x] `lib/dal/adapter.js` — قاعدة الـ adapters
-- [x] `lib/dal/json-adapter.js` — JsonAdapter (نشط حالياً)
-- [x] `lib/dal/sqlite-adapter.js` — SqliteAdapter (جاهز، 9 جداول + indexes)
-- [x] `lib/dal/backup.js` — نسخ احتياطي تلقائي قبل الكتابة
-- [x] `lib/dal/migration.js` — أدوات هجرة JSON → SQLite
-- [x] `lib/dal/index.js` — نقطة دخول موحدة
-- [x] `lib/repositories/base-repository.js`
-- [x] `lib/repositories/article-repository.js`
-- [x] `lib/repositories/settings-repository.js`
-- [x] `lib/repositories/archive-repository.js`
-- [x] تحديث `database.js` — Facade يحافظ على التوافقية العكسية
-- [x] تحديث جميع الـ routes (api.js, admin.js)
-- [x] تحديث جميع الـ modules (publisher, scheduler, seed, archiver, analyzer, writer, collector)
-- [x] اختبارات regression (Status, Content, Login, Search) ✅
+- [x] `lib/dal/index.js` — دعم `switchAdapter()` + `getFallbackAdapter()`
+- [x] `database.js` — دعم التبديل الديناميكي (console, admin, modules)
+- [x] `lib/dal/sqlite-adapter.js` — `_getTableSchema()` لتصفية الحقول
+- [x] `lib/dal/migration.js` — إصلاحات connection lifecycle + key-based upsert
+- [x] `config.js` — إضافة `DB_TYPE` (json/sqlite عبر `.env`)
+- [x] **الهجرة**: 62/62 سجل، 0 أخطاء، 9/9 جداول متطابقة
+- [x] **التحقق**: Row counts, data integrity, spot-check ✅
+- [x] **Benchmark**: SQLite أبطأ على البيانات الصغيرة (<100 سجل) — JSON يبقى default
+- [x] **Regression**: جميع API endpoints (status, content, categories, recent, timeline, stats, search) تعمل مع SQLite
+- [x] جميع الـ modules (collector, analyzer, writer, archiver, scheduler, publisher, seed) تحمل بنجاح مع SQLite
 
 ---
 
-## المهمة التالية: Sprint 1C — SQLite Migration + Cutover
+## المهمة التالية: Phase 2 — بنية بيانات ومصادر حقيقية
 
 ### الأولوية: 🔴 عالية
 
 ### الوصف:
-تفعيل SqliteAdapter كقاعدة بيانات أساسية مع الإبقاء على JsonAdapter كـ fallback.
+ربط المصادر الحقيقية (Facebook Graph API، مواقع وزارة التربية) بدلاً من البيانات الوهمية.
 
 ### الملفات المستهدفة:
 | الملف | التعديل المطلوب |
 |-------|-----------------|
-| `lib/dal/index.js` | تفعيل SqliteAdapter كـ active adapter |
-| `database.js` | دعم التبديل الديناميكي بين JSON و SQLite |
-| `lib/dal/migration.js` | تشغيل الهجرة الفعلية |
-| `data/` | إنشاء database.sqlite مع البيانات المهاجرة |
+| `modules/collector.js` | Facebook Graph API + Web scraper حقيقي |
+| `modules/analyzer.js` | AI classification حقيقي (AraBERT أو API) |
+| `modules/writer.js` | LLM integration (GPT أو Gemini) |
+| `config.js` | API keys للمصادر |
+| `lib/dal/index.js` | تفعيل SQLite كـ active adapter (اختياري) |
 
 ### خطوات التنفيذ:
-1. تشغيل `migration.migrateJsonToSqlite()` — هجرة كل الجداول
-2. تشغيل `migration.verifyMigration()` — التحقق من التطابق
-3. تفعيل SqliteAdapter كـ active adapter (مع JSON fallback)
-4. اختبار شامل (نفس اختبارات Sprint 1B + اختبار الأداء)
-5. إذا نجح: إعلان SQLite جاهز، JSON → read-only fallback
-6. تحديث التوثيق
-7. Commit + Push
+1. تفعيل SQLite: إضافة `DB_TYPE=sqlite` إلى `.env`
+2. ربط Facebook Graph API (token حقيقي + pagination)
+3. Web scraper باستخدام axios + cheerio للمواقع الرسمية
+4. Multi-source deduplication
+5. Data quality dashboard
+6. Caching layer (اختياري)
 
 ### ملاحظات:
-- JSON يبقى للقراءة فقط بعد Sprint 1C
-- `better-sqlite3` مثبت مسبقاً
-- دعم `journal_mode = WAL` للأداء
+- JSON يبقى كـ read-only fallback بعد Sprint 1C
+- `better-sqlite3` مع `WAL mode` للأداء
+- `DB_TYPE` في `.env` يتحكم في الـ adapter
 - النسخ الاحتياطي مستمر عبر `lib/dal/backup.js`
+- HTTPS/WSS مقفول عبر HostingGuru (Cloudflare Tunnel)

@@ -3,6 +3,7 @@ require('dotenv').config();
 
 module.exports = {
   PORT: process.env.PORT || 3000,
+  DB_TYPE: process.env.DB_TYPE || 'json',
   DB_PATH: path.join(__dirname, 'data', 'database.sqlite'),
   DATA_DIR: path.join(__dirname, 'data'),
   PUBLIC_DIR: path.join(__dirname, 'public'),

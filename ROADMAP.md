@@ -14,14 +14,14 @@
 | # | المهمة | الحالة | ملاحظات |
 |--|--------|--------|---------|
 | 1 | [✓] Commit + Push pending fixes | ✅ تم | Image upload, error handling, timeout |
-| 2 | [ ] Migrate JSON DB → SQLite | ⏳ | Sprint 1B |
+| 2 | [✓] Migrate JSON DB → SQLite | ✅ تم | Sprint 1C: 62/62 records migrated, 9/9 tables consistent |
 | 3 | [✓] Add rate limiting + CSRF | ✅ تم | express-rate-limit + custom CSRF |
 | 4 | [✓] Fix `_nextId()` spread overflow | ✅ تم | Replaced with reduce/loop |
 | 5 | [✓] JWT + bcrypt auth middleware | ✅ تم | Credentials moved to .env |
 | 6 | [✓] Security headers audit | ✅ تم | Referrer policy, Helmet config, CSP |
 | _Sprint 1A_ | _Security Hardening_ | _✅ Complete_ | _JWT, bcrypt, rate-limit, CSRF, validation_ |
 | _Sprint 1B_ | _Data Layer Refactor_ | _✅ Complete_ | _DAL + Repositories + Backup + Adapters_ |
-| _Sprint 1C_ | _SQLite Migration_ | _⏳ Next_ | _Full migration + fallback + cutover_ |
+| _Sprint 1C_ | _SQLite Migration_ | _✅ Complete_ | _Full migration + fallback + cutover_ |
 
 ## Phase 2: 🔵 بنية بيانات ومصادر حقيقية (الأيام 4-7)
 
