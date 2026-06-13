@@ -45,15 +45,15 @@ const seed = require('./modules/seed');
 
 app.listen(config.PORT, async () => {
   console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+  console.log(`  🎙️  الصوت المحلي`);
   console.log(`  ${config.SCHOOL_NAME}`);
   console.log(`  ${config.SCHOOL_SUB}`);
   console.log(`  ───────────────────────────────────────`);
-  console.log(`  نظام الجريدة المدرسية الذكية`);
-  console.log(`  مدعوم بالذكاء الاصطناعي`);
+  console.log(`  جريدة مدرسية إلكترونية بتقنيات AI`);
   console.log(`  إدارة تقنية: ${config.ADMIN_TEAM}`);
   console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
   console.log(`  ➜  http://localhost:${config.PORT}`);
-  console.log(`  ➜  لوحة التحكم: http://localhost:${config.PORT}/admin`);
+  console.log(`  ➜  الإدارة: http://localhost:${config.PORT}/admin`);
   console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
 
   await seed.seedIfEmpty();

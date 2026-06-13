@@ -3,66 +3,75 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="الأخبار - ثانوية المجاهد خليل محمد">
-  <title>الأخبار | ثانوية المجاهد خليل محمد</title>
-  <link rel="stylesheet" href="/css/style.css">
+  <meta name="description" content="الأخبار - الصوت المحلي - ثانوية المجاهد خليل محمد">
+  <title>الأخبار | الصوت المحلي</title>
+  <link rel="stylesheet" href="/css/newspaper.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F4F0;</text></svg>">
 </head>
 <body>
-  <div class="top-bar">
+  <div class="np-top-bar">
     <div class="container">
-      <span class="date">📅 <span id="current-date"></span></span>
-      <span class="ai-badge">🤖 نظام الجريدة الذكية AI</span>
+      <span class="date">📅 <span id="np-date"></span></span>
+      <span class="edition">الصوت المحلي</span>
     </div>
   </div>
-
-  <header class="header">
+  <header class="np-masthead">
     <div class="container">
-      <div class="logo">📰 <span>الأخبار</span></div>
-      <div class="subtitle">آخر المستجدات التربوية في ثانوية المجاهد خليل محمد</div>
+      <div class="logo-main" style="font-size:2rem;">الصوت المحلي</div>
+      <div class="logo-sub">قسم الأخبار</div>
     </div>
   </header>
-
-  <nav class="nav">
+  <nav class="np-nav">
     <div class="container">
-      <a href="/">🏠 الرئيسية</a>
-      <div class="nav-dropdown">
-        <a class="nav-dropdown-trigger">🌐 فضاءات وخدمات رقمية ▾</a>
-        <div class="nav-dropdown-menu">
-          <a href="https://awlyaa.education.dz/" target="_blank" rel="noopener noreferrer">👤 فضاء الأولياء</a>
-          <a href="https://ostad.education.dz/auth" target="_blank" rel="noopener noreferrer">👨‍🏫 فضاء الأساتذة</a>
-          <a href="https://bac.onec.dz/" target="_blank" rel="noopener noreferrer">🎓 التسجيل في شهادة البكالوريا</a>
+      <a href="/">★ رئيسي</a>
+      <a href="/news.html" class="active">📰 أخبار</a>
+      <a href="/activities.html">📈 نشاطات</a>
+      <a href="/announcements.html">📢 إعلانات</a>
+      <a href="/timeline.html">📅 أرشيف</a>
+      <div class="np-nav-dropdown">
+        <span class="np-nav-dropdown-trigger">📂 أقسام ▾</span>
+        <div class="np-nav-dropdown-menu">
+          <a href="/section.html?s=sports">⚽ رياضة</a>
+          <a href="/section.html?s=culture">🎭 ثقافة</a>
+          <a href="/section.html?s=science">🔬 علوم</a>
+          <a href="/section.html?s=literature">📖 أدب</a>
+          <a href="/section.html?s=opinion">🗣️ رأي</a>
+          <a href="/section.html?s=guidance">🧑‍🏫 توجيه</a>
+          <a href="/section.html?s=students">🎓 طلبة</a>
+          <a href="/section.html?s=education">🏛️ تربية</a>
         </div>
       </div>
-      <a href="/news.html" class="active">📰 الأخبار</a>
-      <a href="/activities.html">📸 النشاطات</a>
-      <a href="/announcements.html">📢 الإعلانات</a>
-      <a href="/timeline.html">📅 الأرشفة الزمنية</a>
-      <a href="/archive.html">📂 الأرشيف</a>
-      <div class="nav-left">
-        <a href="/admin" class="btn btn-sm btn-accent">🔧 لوحة التحكم</a>
-      </div>
+      <div class="nav-left"><a href="/admin">⚙️ الإدارة</a></div>
     </div>
   </nav>
-
   <main class="container">
-    <div class="search-box">
-      <input type="text" id="search-input" placeholder="🔍 بحث في الأخبار..." />
-      <button class="btn btn-primary" id="search-btn">بحث</button>
+    <div class="np-category-header">
+      <h1>📰 الأخبار</h1>
+      <p>آخر المستجدات والأخبار التربوية في ثانوية المجاهد خليل محمد</p>
     </div>
-    <div id="search-results"></div>
-    <div id="category-content"></div>
+    <div class="np-search-box">
+      <input type="text" id="np-search-input" placeholder="🔍 بحث في الأخبار...">
+      <button id="np-search-btn">بحث</button>
+    </div>
+    <div id="np-search-results"></div>
+    <hr class="np-rule">
+    <div id="np-category-content"></div>
   </main>
-
-  <footer class="footer">
+  <footer class="np-footer">
     <div class="container">
+      <div class="voice-line">🎙️ الصوت المحلي</div>
       <h3>🏫 ثانوية المجاهد خليل محمد المدعو يوسف</h3>
-      <p>عين كرمس - ولاية تيارت | الجمهورية الجزائرية الديمقراطية الشعبية</p>
-      <div class="ai-note">🤖 هذا النظام يعمل بتقنيات الذكاء الاصطناعي</div>
+      <p>عين كرمس — ولاية تيارت</p>
     </div>
   </footer>
-
   <script src="/js/api.js"></script>
-  <script src="/js/main.js"></script>
-  <script>document.addEventListener('DOMContentLoaded', () => { setCurrentDate(); loadCategoryPage('news'); initSearch(); });</script>
+  <script src="/js/newspaper.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('np-date').textContent = new Date().toLocaleDateString('ar-DZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      NP.loadCategoryPage('news');
+      NP.initSearch();
+    });
+  </script>
 </body>
 </html>
