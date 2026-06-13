@@ -12,13 +12,16 @@
 ## Phase 1: 🔴 الإصلاحات العاجلة (الأيام 1-3)
 
 | # | المهمة | الحالة | ملاحظات |
-|---|--------|--------|---------|
+|--|--------|--------|---------|
 | 1 | [✓] Commit + Push pending fixes | ✅ تم | Image upload, error handling, timeout |
-| 2 | [ ] Migrate JSON DB → SQLite | ⏳ | الجداول موجودة مسبقاً |
-| 3 | [ ] Add rate limiting + CSRF | ⏳ | express-rate-limit + csurf |
-| 4 | [ ] Fix `_nextId()` spread overflow | ⏳ | Replace with reduce/loop |
-| 5 | [ ] JWT + bcrypt auth middleware | ⏳ | Replace hardcoded credentials |
-| 6 | [ ] Security headers audit | ⏳ | Referrer policy, CSP, HSTS |
+| 2 | [ ] Migrate JSON DB → SQLite | ⏳ | Sprint 1B |
+| 3 | [✓] Add rate limiting + CSRF | ✅ تم | express-rate-limit + custom CSRF |
+| 4 | [✓] Fix `_nextId()` spread overflow | ✅ تم | Replaced with reduce/loop |
+| 5 | [✓] JWT + bcrypt auth middleware | ✅ تم | Credentials moved to .env |
+| 6 | [✓] Security headers audit | ✅ تم | Referrer policy, Helmet config, CSP |
+| _Sprint 1A_ | _Security Hardening_ | _✅ Complete_ | _JWT, bcrypt, rate-limit, CSRF, validation_ |
+| _Sprint 1B_ | _Data Layer Refactor_ | _⏳ Next_ | _SQLite migration_ |
+| _Sprint 1C_ | _SQLite Migration_ | _⏳ Pending_ | _Full migration + fallback_ |
 
 ## Phase 2: 🔵 بنية بيانات ومصادر حقيقية (الأيام 4-7)
 

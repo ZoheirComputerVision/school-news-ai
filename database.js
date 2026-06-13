@@ -138,7 +138,7 @@ class JsonDB {
 
   _nextId(table) {
     const arr = this.tables[table] || [];
-    return arr.length > 0 ? Math.max(...arr.map(r => r.id || 0)) + 1 : 1;
+    return arr.length > 0 ? arr.reduce((max, r) => Math.max(max, r.id || 0), 0) + 1 : 1;
   }
 
   query(table, fn) {

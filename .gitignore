@@ -1,4 +1,10 @@
 node_modules/
 .env
 *.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.bak
+data/fb_replies.json
+data/views.json
 public/uploads/
+server-test.log

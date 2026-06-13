@@ -1,5 +1,39 @@
 # CHANGELOG.md — سجل التغييرات
 
+## [1.1.0] — 2026-06-13 — Sprint 1A: Security Hardening
+
+### Added
+- **`.env`** — متغيرات البيئة لبيانات الدخول (تم إزالة الـ hardcoded credentials)
+- **`middleware/auth.js`** — JWT authentication middleware مع صلاحية 24 ساعة
+- **`middleware/validate.js`** — Rate limiting (3 مستويات) + CSRF protection + Input validation
+- **إضافة تبعيات أمنية**: `dotenv`, `bcryptjs`, `jsonwebtoken`, `express-rate-limit`
+
+### Changed
+- **`config.js`** — تحميل الإعدادات من `.env` عبر `dotenv` (JWT_SECRET, ADMIN_USERNAME, ADMIN_PASSWORD)
+- **`server.js`** — تطبيق rate limiter على `/api`, تقليل `express.json()` حد إلى 10mb, إضافة `referrerPolicy`
+- **`routes/admin.js`** — استبدال hardcoded auth بـ JWT + bcrypt + middleware أمني
+- **`public/js/api.js`** — إرسال `Authorization: Bearer` و `X-CSRF-Token` في طلبات الإدارة
+- **`database.js`** — استبدال `Math.max(...arr.map(...))` بـ `arr.reduce()` (إصلاح `_nextId()`)
+- **جميع ملفات HTML (8 صفحات)** — إضافة `rel="noopener noreferrer"` للروابط الخارجية
+
+### Fixed
+- 🔴 **Severity: Critical** — Hardcoded admin credentials removed, replaced with bcrypt + JWT
+- 🔴 **Severity: High** — `_nextId()` spread operator risk (stack overflow with >125K records)
+- 🟡 **Severity: Medium** — Reverse Tabnabbing (external links now have `rel="noopener noreferrer"`)
+- 🟡 **Severity: Medium** — Rate limiting added to prevent API abuse
+- 🟡 **Severity: Medium** — Express JSON body limit reduced from 50mb to 10mb (DoS protection)
+- 🔴 CSRF protection implemented via custom header validation
+
+### Security Improvements
+- Admin credentials moved from source code to `.env`
+- Password hashing via bcrypt (10 rounds)
+- JWT tokens with 24h expiry
+- 3-tier rate limiting: auth (10/15min), admin (100/15min), api (200/15min)
+- CSRF token validation via `X-CSRF-Token` header
+- Input validation for manual content submission
+- `helmet` enhanced with `referrerPolicy`
+- `console.log` removed from sensitive error paths
+
 ## [1.0.0] — 2026-06-13 — Session: Structural Analysis
 
 ### Added

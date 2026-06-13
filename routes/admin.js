@@ -1,21 +1,41 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const router = express.Router();
 const db = require('../database');
+const config = require('../config');
 const collector = require('../modules/collector');
 const analyzer = require('../modules/analyzer');
 const writer = require('../modules/writer');
 const publisher = require('../modules/publisher');
 const archive = require('../modules/archiver');
+const { authenticateToken } = require('../middleware/auth');
+const { authLimiter, csrfProtection, validateManualInput } = require('../middleware/validate');
 
-router.post('/auth', (req, res) => {
+router.post('/auth', authLimiter, (req, res) => {
   const { username, password } = req.body;
-  if (username === 'zoheir' && password === 'admin2026') {
-    return res.json({ success: true, token: 'admin-token', user: 'Zoheir IT Solutions' });
+  if (!username || !password) {
+    return res.status(400).json({ success: false, error: 'اسم المستخدم وكلمة المرور مطلوبان' });
   }
-  res.status(401).json({ success: false, error: 'بيانات الدخول غير صحيحة' });
+  if (username !== config.ADMIN_USERNAME) {
+    return res.status(401).json({ success: false, error: 'بيانات الدخول غير صحيحة' });
+  }
+  const passwordMatch = bcrypt.compareSync(password, config.ADMIN_PASSWORD);
+  if (!passwordMatch) {
+    return res.status(401).json({ success: false, error: 'بيانات الدخول غير صحيحة' });
+  }
+  const token = jwt.sign(
+    { username: config.ADMIN_USERNAME, role: 'admin' },
+    config.JWT_SECRET,
+    { expiresIn: '24h' }
+  );
+  res.json({ success: true, token, user: 'Zoheir IT Solutions' });
 });
+
+router.use(authenticateToken);
+router.use(csrfProtection);
 
 router.get('/dashboard', (req, res) => res.json(archive.getStats()));
 
@@ -98,7 +118,7 @@ router.post('/collect', async (req, res) => {
   } catch (e) { res.status(500).json({ success: false, error: e.message }); }
 });
 
-router.post('/collect/manual', async (req, res) => {
+router.post('/collect/manual', validateManualInput, async (req, res) => {
   try {
     const { title, body, category, source, event_date, image_data } = req.body;
     if (!title || !body) return res.status(400).json({ success: false, error: 'العنوان والمحتوى مطلوبان' });

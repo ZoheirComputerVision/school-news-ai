@@ -16,16 +16,30 @@ const API = {
     }
   },
 
-  async get(endpoint) {
-    const res = await this._fetch(this.base + endpoint);
+  async get(endpoint, useAuth = false) {
+    const options = {};
+    if (useAuth) {
+      options.headers = this._getHeaders();
+    }
+    const res = await this._fetch(this.base + endpoint, options);
     if (!res.ok) throw new Error(`API Error: ${res.status}`);
     return res.json();
+  },
+
+  _getHeaders() {
+    const headers = { 'Content-Type': 'application/json' };
+    const token = localStorage.getItem('admin_token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+      headers['X-CSRF-Token'] = token.slice(0, 20);
+    }
+    return headers;
   },
 
   async post(endpoint, data) {
     const res = await this._fetch(this.base + endpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: this._getHeaders(),
       body: JSON.stringify(data),
     });
     if (!res.ok) {
@@ -52,9 +66,9 @@ const API = {
   // Admin API
   admin: {
     login: (username, password) => API.post('/admin/auth', { username, password }),
-    dashboard: () => API.get('/admin/dashboard'),
-    getContent: (params) => API.get(`/admin/content?${new URLSearchParams(params).toString()}`),
-    getContentById: (id) => API.get(`/admin/content/${id}`),
+    dashboard: () => API.get('/admin/dashboard', true),
+    getContent: (params) => API.get(`/admin/content?${new URLSearchParams(params).toString()}`, true),
+    getContentById: (id) => API.get(`/admin/content/${id}`, true),
     approve: (id) => API.post(`/admin/content/${id}/approve`),
     reject: (id, reason) => API.post(`/admin/content/${id}/reject`, { reason }),
     generate: (id) => API.post(`/admin/content/${id}/generate`),
@@ -64,12 +78,12 @@ const API = {
     collectManual: (data) => API.post('/admin/collect/manual', data),
     analyze: () => API.post('/admin/analyze'),
     publish: () => API.post('/admin/publish'),
-    getLogs: (params) => API.get(`/admin/logs?${new URLSearchParams(params).toString()}`),
-    getSettings: () => API.get('/admin/settings'),
+    getLogs: (params) => API.get(`/admin/logs?${new URLSearchParams(params).toString()}`, true),
+    getSettings: () => API.get('/admin/settings', true),
     updateSetting: (key, value) => API.post('/admin/settings', { key, value }),
     exportArchive: () => API.post('/admin/archive/export'),
-    getTimeline: () => API.get('/admin/archive/timeline'),
-    getSources: () => API.get('/admin/sources'),
+    getTimeline: () => API.get('/admin/archive/timeline', true),
+    getSources: () => API.get('/admin/sources', true),
     runCollector: () => API.post('/admin/scheduler/run-collector'),
   },
 };

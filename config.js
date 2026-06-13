@@ -1,4 +1,5 @@
 const path = require('path');
+require('dotenv').config();
 
 module.exports = {
   PORT: process.env.PORT || 3000,
@@ -6,6 +7,10 @@ module.exports = {
   DATA_DIR: path.join(__dirname, 'data'),
   PUBLIC_DIR: path.join(__dirname, 'public'),
   ADMIN_DIR: path.join(__dirname, 'admin'),
+
+  JWT_SECRET: process.env.JWT_SECRET || 'fallback-dev-secret-change-in-production',
+  ADMIN_USERNAME: process.env.ADMIN_USERNAME || 'zoheir',
+  ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || '',
 
   SCHOOL_NAME: 'ثانوية المجاهد خليل محمد المدعو يوسف',
   SCHOOL_SUB: 'عين كرمس - تيارت',
