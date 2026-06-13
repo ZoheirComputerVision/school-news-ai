@@ -1,5 +1,9 @@
 const { v4: uuidv4 } = require('uuid');
 const db = require('../database');
+const { BaseRepository } = require('../lib/repositories/base-repository');
+
+const sourcesRepo = new BaseRepository(db.adapter, 'sources');
+const rawDataRepo = new BaseRepository(db.adapter, 'raw_data');
 
 const DEMO_DATA = [
   {
@@ -107,14 +111,14 @@ class DataCollector {
       return [];
     }
 
-    const source = db.findOne('sources', s => s.type === 'facebook');
+    const source = sourcesRepo.findOne(s => s.type === 'facebook');
     const items = [];
 
     for (const demo of DEMO_DATA.filter(d => d.source_url.includes('facebook'))) {
       const hash = uuidv4().replace(/-/g, '').slice(0, 16);
-      const existing = db.findOne('raw_data', r => r.content_hash === hash || r.raw_text.includes(demo.title));
+      const existing = rawDataRepo.findOne(r => r.content_hash === hash || r.raw_text.includes(demo.title));
       if (!existing) {
-        db.insert('raw_data', {
+        rawDataRepo.create({
           source_id: source?.id || 1,
           raw_text: JSON.stringify(demo),
           content_hash: hash,
@@ -125,7 +129,7 @@ class DataCollector {
     }
 
     if (source) {
-      db.update('sources', source.id, { last_scraped: new Date().toISOString() });
+      sourcesRepo.update(source.id, { last_scraped: new Date().toISOString() });
     }
 
     this._markFetched('facebook');
@@ -138,14 +142,14 @@ class DataCollector {
       return [];
     }
 
-    const source = db.findOne('sources', s => s.type === 'web');
+    const source = sourcesRepo.findOne(s => s.type === 'web');
     const items = [];
 
     for (const demo of DEMO_DATA.filter(d => d.source_url.includes('education.gov.dz') || !d.source_url)) {
       const hash = uuidv4().replace(/-/g, '').slice(0, 16);
-      const existing = db.findOne('raw_data', r => r.content_hash === hash || r.raw_text.includes(demo.title));
+      const existing = rawDataRepo.findOne(r => r.content_hash === hash || r.raw_text.includes(demo.title));
       if (!existing) {
-        db.insert('raw_data', {
+        rawDataRepo.create({
           source_id: source?.id || 2,
           raw_text: JSON.stringify(demo),
           content_hash: hash,
@@ -156,7 +160,7 @@ class DataCollector {
     }
 
     if (source) {
-      db.update('sources', source.id, { last_scraped: new Date().toISOString() });
+      sourcesRepo.update(source.id, { last_scraped: new Date().toISOString() });
     }
 
     this._markFetched('ministry');
@@ -164,9 +168,9 @@ class DataCollector {
   }
 
   async collectManual(data) {
-    const source = db.findOne('sources', s => s.type === 'manual');
+    const source = sourcesRepo.findOne(s => s.type === 'manual');
     const hash = uuidv4().replace(/-/g, '').slice(0, 16);
-    const record = db.insert('raw_data', {
+    const record = rawDataRepo.create({
       source_id: source?.id || 3,
       raw_text: JSON.stringify(data),
       content_hash: hash,

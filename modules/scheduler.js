@@ -1,5 +1,12 @@
 const cron = require('node-cron');
 const db = require('../database');
+const { SettingsRepository } = require('../lib/repositories/settings-repository');
+const { ArticleRepository } = require('../lib/repositories/article-repository');
+const { ArchiveRepository } = require('../lib/repositories/archive-repository');
+
+const settingsRepo = new SettingsRepository(db.adapter);
+const articles = new ArticleRepository(db.adapter);
+const archiveRepo = new ArchiveRepository(db.adapter);
 
 class Scheduler {
   constructor() { this.jobs = []; this.running = false; }
@@ -26,7 +33,7 @@ class Scheduler {
     try {
       const collector = require('./collector');
       const results = await collector.collectAll();
-      db.upsert('settings', { key: 'last_scheduler_run', value: new Date().toISOString(), updated_at: new Date().toISOString() }, s => s.key === 'last_scheduler_run');
+      settingsRepo.set('last_scheduler_run', new Date().toISOString());
       console.log(`[Scheduler] ✓ جمع ${results.length} عنصر`);
     } catch (e) { console.error('[Scheduler] ✗ فشل الجمع:', e.message); }
   }
@@ -34,7 +41,7 @@ class Scheduler {
   async runAnalyzer() {
     console.log('[Scheduler] تشغيل مهمة التحليل...');
     try {
-      const pending = db.query('raw_data', r => r.status === 'pending');
+      const pending = db.rawData.find(r => r.status === 'pending');
       const analyzer = require('./analyzer');
       for (const item of pending.slice(0, 5)) {
         try {
@@ -49,7 +56,7 @@ class Scheduler {
   async runPublisher() {
     console.log('[Scheduler] تشغيل مهمة النشر...');
     try {
-      const drafts = db.query('processed_content', c => c.status === 'draft' && c.overall_score >= 0.8);
+      const drafts = articles.findDraftsForPublish();
       const writer = require('./writer');
       const publisher = require('./publisher');
       for (const draft of drafts.slice(0, 3)) {
@@ -66,8 +73,8 @@ class Scheduler {
   async runArchiveSync() {
     console.log('[Scheduler] تشغيل مزامنة الأرشيف...');
     try {
-      const unarchived = db.query('processed_content', pc => {
-        const inArchive = db.findOne('archive', a => a.content_id === pc.id);
+      const unarchived = articles.find(pc => {
+        const inArchive = archiveRepo.findByContentId(pc.id);
         return (pc.status === 'published' || pc.status === 'rejected') && !inArchive;
       });
       const publisher = require('./publisher');
@@ -79,8 +86,8 @@ class Scheduler {
   }
 
   resetDailyCount() {
-    db.upsert('settings', { key: 'total_published_today', value: '0', updated_at: new Date().toISOString() }, s => s.key === 'total_published_today');
-    db.upsert('settings', { key: 'publish_date', value: new Date().toISOString().split('T')[0], updated_at: new Date().toISOString() }, s => s.key === 'publish_date');
+    settingsRepo.set('total_published_today', '0');
+    settingsRepo.set('publish_date', new Date().toISOString().split('T')[0]);
     console.log('[Scheduler] ✓ إعادة تعيين العداد اليومي');
   }
 }

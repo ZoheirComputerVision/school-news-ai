@@ -10,9 +10,12 @@ const collector = require('../modules/collector');
 const analyzer = require('../modules/analyzer');
 const writer = require('../modules/writer');
 const publisher = require('../modules/publisher');
-const archive = require('../modules/archiver');
 const { authenticateToken } = require('../middleware/auth');
 const { authLimiter, csrfProtection, validateManualInput } = require('../middleware/validate');
+
+const articles = db.articles;
+const settingsRepo = db.settings;
+const archiveRepo = db.archive;
 
 router.post('/auth', authLimiter, (req, res) => {
   const { username, password } = req.body;
@@ -37,11 +40,11 @@ router.post('/auth', authLimiter, (req, res) => {
 router.use(authenticateToken);
 router.use(csrfProtection);
 
-router.get('/dashboard', (req, res) => res.json(archive.getStats()));
+router.get('/dashboard', (req, res) => res.json(archiveRepo.getStats()));
 
 router.get('/content', (req, res) => {
-  let items = db.query('processed_content');
   const { status, category, limit = 50, offset = 0 } = req.query;
+  let items = articles.findAll();
   if (status) items = items.filter(i => i.status === status);
   if (category) items = items.filter(i => i.category === category);
   items.sort((a, b) => (b.created_at || '').localeCompare((a.created_at || '')));
@@ -51,9 +54,9 @@ router.get('/content', (req, res) => {
 });
 
 router.get('/content/:id', (req, res) => {
-  const item = db.get('processed_content', parseInt(req.params.id));
+  const item = articles.findById(parseInt(req.params.id));
   if (!item) return res.status(404).json({ error: 'غير موجود' });
-  const logs = db.query('ai_decision_log', l => l.content_id === item.id).sort((a, b) => (b.created_at || '').localeCompare((a.created_at || '')));
+  const logs = articles.getDecisionLogs(item.id);
   res.json({ ...item, logs });
 });
 
@@ -75,13 +78,13 @@ router.post('/content/:id/reject', async (req, res) => {
 router.post('/content/:id/delete', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const content = db.get('processed_content', id);
+    const content = articles.findById(id);
     if (!content) return res.status(404).json({ success: false, error: 'غير موجود' });
-    db.delete('processed_content', id);
-    db.saveNow('processed_content');
-    const archived = db.findOne('archive', a => a.content_id === id);
-    if (archived) db.delete('archive', archived.id);
-    db.saveNow('archive');
+    articles.delete(id);
+    db.adapter.saveNow('processed_content');
+    const archived = archiveRepo.findByContentId(id);
+    if (archived) archiveRepo.delete(archived.id);
+    db.adapter.saveNow('archive');
     res.json({ success: true, message: 'تم الحذف نهائيًا' });
   } catch (e) { res.status(500).json({ success: false, error: e.message }); }
 });
@@ -90,7 +93,7 @@ router.post('/content/:id/update', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const { title, body, category, source_name, event_date } = req.body;
-    const content = db.get('processed_content', id);
+    const content = articles.findById(id);
     if (!content) return res.status(404).json({ success: false, error: 'غير موجود' });
     const updateData = {};
     if (title !== undefined) updateData.title = title;
@@ -98,8 +101,8 @@ router.post('/content/:id/update', async (req, res) => {
     if (category !== undefined) updateData.category = category;
     if (source_name !== undefined) updateData.source_name = source_name;
     if (event_date !== undefined) updateData.event_date = event_date;
-    const updated = db.update('processed_content', id, updateData);
-    db.saveNow('processed_content');
+    const updated = articles.update(id, updateData);
+    db.adapter.saveNow('processed_content');
     res.json({ success: true, content: updated, message: 'تم التعديل بنجاح' });
   } catch (e) { res.status(500).json({ success: false, error: e.message }); }
 });
@@ -139,7 +142,7 @@ router.post('/collect/manual', validateManualInput, async (req, res) => {
       data.image_data = image_data;
     }
     const result = await collector.collectManual(data);
-    const rawRows = db.findOne('raw_data', r => r.content_hash === result.hash);
+    const rawRows = db.adapter.findOne('raw_data', r => r.content_hash === result.hash);
     if (rawRows) await analyzer.analyzeRawData(rawRows.id);
     res.json({ success: true, message: 'تم إرسال المحتوى للمعالجة' });
   } catch (e) { res.status(500).json({ success: false, error: e.message }); }
@@ -147,7 +150,7 @@ router.post('/collect/manual', validateManualInput, async (req, res) => {
 
 router.post('/analyze', async (req, res) => {
   try {
-    const pending = db.query('raw_data', r => r.status === 'pending').slice(0, 5);
+    const pending = db.rawData.find(r => r.status === 'pending').slice(0, 5);
     const results = [];
     for (const item of pending) {
       const result = await analyzer.analyzeRawData(item.id);
@@ -159,7 +162,7 @@ router.post('/analyze', async (req, res) => {
 
 router.post('/publish', async (req, res) => {
   try {
-    const candidates = db.query('processed_content', c => c.status !== 'published' && c.status !== 'rejected').slice(0, 10);
+    const candidates = articles.find(c => c.status !== 'published' && c.status !== 'rejected').slice(0, 10);
     const results = [];
     for (const item of candidates) {
       if (!item.writer_version) {
@@ -174,37 +177,27 @@ router.post('/publish', async (req, res) => {
 
 router.get('/logs', (req, res) => {
   const { limit = 100, offset = 0 } = req.query;
-  let logs = db.query('ai_decision_log').sort((a, b) => (b.created_at || '').localeCompare((a.created_at || '')));
-  const total = logs.length;
-  const items = logs.slice(parseInt(offset), parseInt(offset) + parseInt(limit)).map(log => {
-    const content = db.get('processed_content', log.content_id);
-    return { ...log, title: content ? content.title : 'N/A' };
-  });
-  res.json({ items, total });
+  const result = articles.getAllLogs({ limit: parseInt(limit), offset: parseInt(offset) });
+  res.json(result);
 });
 
-router.get('/settings', (req, res) => {
-  const settings = db.query('settings');
-  const obj = {};
-  settings.forEach(s => { obj[s.key] = s.value; });
-  res.json(obj);
-});
+router.get('/settings', (req, res) => res.json(settingsRepo.getAll()));
 
 router.post('/settings', (req, res) => {
   const { key, value } = req.body;
   if (!key) return res.status(400).json({ error: 'Key required' });
-  db.upsert('settings', { key, value, updated_at: new Date().toISOString() }, s => s.key === key);
+  settingsRepo.set(key, value);
   res.json({ success: true, key, value });
 });
 
 router.post('/archive/export', (req, res) => {
-  const filePath = archive.exportToJSON();
+  const filePath = archiveRepo.exportToJSON();
   res.json({ success: true, path: filePath });
 });
 
-router.get('/archive/timeline', (req, res) => res.json(archive.buildTimeline()));
+router.get('/archive/timeline', (req, res) => res.json(archiveRepo.buildTimeline()));
 
-router.get('/sources', (req, res) => res.json(db.query('sources')));
+router.get('/sources', (req, res) => res.json(db.sources.findAll()));
 
 router.post('/scheduler/run-collector', async (req, res) => {
   try {

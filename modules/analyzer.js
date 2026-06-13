@@ -1,4 +1,7 @@
 const db = require('../database');
+const { ArticleRepository } = require('../lib/repositories/article-repository');
+
+const articles = new ArticleRepository(db.adapter);
 
 const CLASSIFIER = {
   news: {
@@ -49,7 +52,7 @@ class ContentAnalyzer {
   _detectDuplicate(body, title) {
     if (!body) return { isDuplicate: false, similarity: 0 };
 
-    const existing = db.query('processed_content');
+    const existing = articles.findAll();
     for (const item of existing) {
       const bodySim = this._computeTextSimilarity(body.slice(0, 200), (item.body || '').slice(0, 200));
       const titleSim = title && item.title ? this._computeTextSimilarity(title, item.title) : 0;
@@ -219,7 +222,7 @@ class ContentAnalyzer {
   }
 
   async analyzeRawData(rawDataId) {
-    const raw = db.get('raw_data', rawDataId);
+    const raw = db.rawData.findById(rawDataId);
     if (!raw) return null;
 
     let data;
@@ -232,8 +235,8 @@ class ContentAnalyzer {
     // 1. فحص التكرار
     const dupCheck = this._detectDuplicate(body, data.title);
     if (dupCheck.isDuplicate) {
-      db.update('raw_data', rawDataId, { status: 'processed' });
-      db.insert('ai_decision_log', {
+      db.rawData.update(rawDataId, { status: 'processed' });
+      db.adapter.create('ai_decision_log', {
         content_id: -1,
         decision_type: 'duplicate_rejected',
         input_data: JSON.stringify({ raw_id: rawDataId }),
@@ -281,7 +284,7 @@ class ContentAnalyzer {
     else if (overall >= 0.5) importance = 'normal';
     else importance = 'low';
 
-    const content = db.insert('processed_content', {
+    const content = articles.create({
       raw_data_id: rawDataId,
       title: data.title || 'بدون عنوان',
       body: body,
@@ -303,7 +306,7 @@ class ContentAnalyzer {
       writer_version: null,
     });
 
-    db.insert('ai_decision_log', {
+    db.adapter.create('ai_decision_log', {
       content_id: content.id,
       decision_type: 'classification',
       input_data: JSON.stringify({ text_sample: body.slice(0, 100) }),
@@ -321,7 +324,7 @@ class ContentAnalyzer {
       human_reviewed: 0,
     });
 
-    db.update('raw_data', rawDataId, { status: 'processed' });
+    db.rawData.update(rawDataId, { status: 'processed' });
     return { classification, factCheck, overall, summary, importance, duplicate: false };
   }
 }

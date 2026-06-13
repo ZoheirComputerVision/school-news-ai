@@ -1,11 +1,17 @@
 const db = require('../database');
+const { SettingsRepository } = require('../lib/repositories/settings-repository');
+const { ArticleRepository } = require('../lib/repositories/article-repository');
+const { ArchiveRepository } = require('../lib/repositories/archive-repository');
 
 const MAX_PUBLISH_PER_DAY = 15;
 
+const settingsRepo = new SettingsRepository(db.adapter);
+const articles = new ArticleRepository(db.adapter);
+const archiveRepo = new ArchiveRepository(db.adapter);
+
 class PublishingEngine {
   getSetting(key) {
-    const s = db.findOne('settings', s => s.key === key);
-    return s ? s.value : 'false';
+    return settingsRepo.get(key) || 'false';
   }
 
   _getDailyCount() {
@@ -38,7 +44,7 @@ class PublishingEngine {
     if (!content.source_name || content.source_name === 'غير معروف') checks.push('مصدر غير معروف');
 
     // فحص النص المكرر (أكثر من 80% تشابه مع منشور)
-    const existing = db.query('processed_content', c =>
+    const existing = articles.find(c =>
       c.status === 'published' && c.id !== content.id
     );
     for (const item of existing) {
@@ -113,14 +119,13 @@ class PublishingEngine {
   }
 
   async publish(contentId) {
-    const content = db.get('processed_content', contentId);
+    const content = articles.findById(contentId);
     if (!content) return { success: false, error: 'المحتوى غير موجود' };
     if (content.status === 'published') return { success: false, error: 'منشور مسبقًا', duplicate: true };
 
-    // فحص الجودة
     const qualityCheck = this._contentQualityCheck(content);
     if (!qualityCheck.passed) {
-      db.update('processed_content', contentId, { status: 'review' });
+      articles.update(contentId, { status: 'review' });
       this.logDecision(contentId, 'quality_check_failed', qualityCheck);
       return { success: false, method: 'quality_blocked', reason: qualityCheck.issues.join('، '), message: 'فحص الجودة: لم يجتز' };
     }
@@ -128,20 +133,19 @@ class PublishingEngine {
     const check = this.canAutoPublish(content);
 
     if (check.allowed) {
-      db.update('processed_content', contentId, {
+      articles.update(contentId, {
         status: 'published',
         published_at: new Date().toISOString(),
       });
-      db.saveNow('processed_content');
+      db.adapter.saveNow('processed_content');
       this._updateDailyCount();
       this.logDecision(contentId, 'auto_publish', check);
       this._archive(contentId, 'auto_published');
       return { success: true, method: 'auto', message: 'نشر تلقائي ✓' };
     }
 
-    // إحالة للمراجعة مع تحديد المستوى
     const reviewPriority = check.level === 'critical' ? 'urgent' : check.level === 'warning' ? 'normal' : 'low';
-    db.update('processed_content', contentId, {
+    articles.update(contentId, {
       status: 'review',
       review_priority: reviewPriority,
     });
@@ -150,7 +154,7 @@ class PublishingEngine {
   }
 
   async approveManual(contentId, reviewer = 'admin') {
-    const content = db.get('processed_content', contentId);
+    const content = articles.findById(contentId);
     if (!content) return { success: false, error: 'غير موجود' };
 
     const qualityCheck = this._contentQualityCheck(content);
@@ -158,14 +162,14 @@ class PublishingEngine {
       return { success: false, error: 'المحتوى لا يجتاز فحص الجودة', issues: qualityCheck.issues };
     }
 
-    db.update('processed_content', contentId, {
+    articles.update(contentId, {
       status: 'published',
       published_at: new Date().toISOString(),
       reviewed_at: new Date().toISOString(),
       reviewed_by: reviewer,
     });
 
-    db.saveNow('processed_content');
+    db.adapter.saveNow('processed_content');
     this._updateDailyCount();
     this.logDecision(contentId, 'manual_approve', { reviewer });
     this._archive(contentId, 'manual_approved');
@@ -173,54 +177,38 @@ class PublishingEngine {
   }
 
   async reject(contentId, reason = 'مرفوض من المشرف', reviewer = 'admin') {
-    db.update('processed_content', contentId, {
+    articles.update(contentId, {
       status: 'rejected',
       reviewed_at: new Date().toISOString(),
       reviewed_by: reviewer,
       rejection_reason: reason,
     });
-    db.saveNow('processed_content');
+    db.adapter.saveNow('processed_content');
     this.logDecision(contentId, 'rejected', { reason, reviewer });
     this._archive(contentId, 'rejected');
     return { success: true, message: 'تم الرفض والأرشفة' };
   }
 
   _archive(contentId, reason) {
-    const content = db.get('processed_content', contentId);
+    const content = articles.findById(contentId);
     if (!content) return;
-    const existing = db.findOne('archive', a => a.content_id === contentId);
-    if (!existing) {
-      db.insert('archive', {
-        content_id: contentId,
-        original_data: JSON.stringify(content),
-        archive_reason: reason,
-        decisions_log: JSON.stringify({ archived_at: new Date().toISOString(), by: 'publisher-v2' }),
-      });
-    }
+    archiveRepo.archiveContent(contentId, reason);
   }
 
   _updateDailyCount() {
     const today = new Date().toISOString().split('T')[0];
     const savedDate = this.getSetting('publish_date');
     if (savedDate !== today) {
-      db.upsert('settings', { key: 'publish_date', value: today, updated_at: new Date().toISOString() }, s => s.key === 'publish_date');
-      db.upsert('settings', { key: 'total_published_today', value: '1', updated_at: new Date().toISOString() }, s => s.key === 'total_published_today');
+      settingsRepo.set('publish_date', today);
+      settingsRepo.set('total_published_today', '1');
     } else {
       const current = parseInt(this.getSetting('total_published_today') || '0');
-      db.upsert('settings', { key: 'total_published_today', value: String(current + 1), updated_at: new Date().toISOString() }, s => s.key === 'total_published_today');
+      settingsRepo.set('total_published_today', String(current + 1));
     }
   }
 
   logDecision(contentId, type, data) {
-    db.insert('ai_decision_log', {
-      content_id: contentId,
-      decision_type: type,
-      input_data: JSON.stringify(data || {}),
-      output_data: JSON.stringify({ timestamp: new Date().toISOString(), publisher: 'v2' }),
-      model_version: 'publisher-v2',
-      confidence: type.includes('approve') || type === 'auto_publish' ? 0.95 : 1.0,
-      human_reviewed: type === 'manual_approve' || type === 'rejected' ? 1 : 0,
-    });
+    articles.logDecision(contentId, type, data);
   }
 }
 

@@ -1,46 +1,51 @@
 # NEXT_SESSION.md — تعليمات الجلسة القادمة
 
-## ✅ Sprint 1A Complete — Security Hardening
+## ✅ Sprint 1B Complete — Data Layer Refactor
 
 ### المنجز:
-- [x] نقل credentials إلى `.env` عبر `dotenv`
-- [x] bcrypt password hashing (10 rounds)
-- [x] JWT authentication middleware مع صلاحية 24h
-- [x] Rate limiting (3 tiers: auth 10/15min, admin 100/15min, api 200/15min)
-- [x] CSRF protection عبر `X-CSRF-Token` header
-- [x] Input validation للمحتوى اليدوي
-- [x] إصلاح `_nextId()` — استبدال spread بـ reduce
-- [x] إضافة `rel="noopener noreferrer"` لجميع الروابط الخارجية
-- [x] تحديث `helmet` مع `referrerPolicy`
+- [x] `lib/dal/adapter.js` — قاعدة الـ adapters
+- [x] `lib/dal/json-adapter.js` — JsonAdapter (نشط حالياً)
+- [x] `lib/dal/sqlite-adapter.js` — SqliteAdapter (جاهز، 9 جداول + indexes)
+- [x] `lib/dal/backup.js` — نسخ احتياطي تلقائي قبل الكتابة
+- [x] `lib/dal/migration.js` — أدوات هجرة JSON → SQLite
+- [x] `lib/dal/index.js` — نقطة دخول موحدة
+- [x] `lib/repositories/base-repository.js`
+- [x] `lib/repositories/article-repository.js`
+- [x] `lib/repositories/settings-repository.js`
+- [x] `lib/repositories/archive-repository.js`
+- [x] تحديث `database.js` — Facade يحافظ على التوافقية العكسية
+- [x] تحديث جميع الـ routes (api.js, admin.js)
+- [x] تحديث جميع الـ modules (publisher, scheduler, seed, archiver, analyzer, writer, collector)
+- [x] اختبارات regression (Status, Content, Login, Search) ✅
 
 ---
 
-## المهمة التالية: Sprint 1B — Data Layer Refactor
+## المهمة التالية: Sprint 1C — SQLite Migration + Cutover
 
 ### الأولوية: 🔴 عالية
 
 ### الوصف:
-إعادة هيكلة طبقة البيانات لتكون قابلة للهجرة إلى SQLite. إنشاء طبقة تجريد (abstraction layer) تسمح بالتبديل بين JSON و SQLite بسلاسة، مع إضافة backup آلي.
+تفعيل SqliteAdapter كقاعدة بيانات أساسية مع الإبقاء على JsonAdapter كـ fallback.
 
 ### الملفات المستهدفة:
 | الملف | التعديل المطلوب |
 |-------|-----------------|
-| `lib/database-sqlite.js` | إنشاء طبقة SQLite جديدة |
-| `database.js` | إضافة واجهة موحدة (adapter pattern) |
-| `config.js` | إضافة خيار نوع قاعدة البيانات |
-| `server.js` | تمرير adapter حسب الإعدادات |
+| `lib/dal/index.js` | تفعيل SqliteAdapter كـ active adapter |
+| `database.js` | دعم التبديل الديناميكي بين JSON و SQLite |
+| `lib/dal/migration.js` | تشغيل الهجرة الفعلية |
+| `data/` | إنشاء database.sqlite مع البيانات المهاجرة |
 
-### خطوات التنفيذ المقترحة:
-1. إنشاء `lib/database-adapter.js` — واجهة موحدة (interface)
-2. إنشاء `lib/database-sqlite.js` — تنفيذ SQLite باستخدام `better-sqlite3`
-3. تعديل `database.js` — تحويله إلى adapter مع fallback للـ JSON
-4. إضافة backup تلقائي (cron daily + manual)
-5. إضافة أداة هجرة (migration tool)
-6. اختبار الأداء والمقارنة
+### خطوات التنفيذ:
+1. تشغيل `migration.migrateJsonToSqlite()` — هجرة كل الجداول
+2. تشغيل `migration.verifyMigration()` — التحقق من التطابق
+3. تفعيل SqliteAdapter كـ active adapter (مع JSON fallback)
+4. اختبار شامل (نفس اختبارات Sprint 1B + اختبار الأداء)
+5. إذا نجح: إعلان SQLite جاهز، JSON → read-only fallback
+6. تحديث التوثيق
 7. Commit + Push
 
 ### ملاحظات:
-- `better-sqlite3` ليس مثبتاً بعد (يحتاج Python build tools على Windows)
-- البديل: `sql.js` (pure JS SQLite, لا يحتاج build tools)
-- إبقاء JSON DB كـ fallback للتوافقية
-- لا تبدأ Sprint 1C قبل اكتمال Sprint 1B
+- JSON يبقى للقراءة فقط بعد Sprint 1C
+- `better-sqlite3` مثبت مسبقاً
+- دعم `journal_mode = WAL` للأداء
+- النسخ الاحتياطي مستمر عبر `lib/dal/backup.js`

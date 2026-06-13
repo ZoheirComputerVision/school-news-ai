@@ -20,8 +20,8 @@
 | 5 | [✓] JWT + bcrypt auth middleware | ✅ تم | Credentials moved to .env |
 | 6 | [✓] Security headers audit | ✅ تم | Referrer policy, Helmet config, CSP |
 | _Sprint 1A_ | _Security Hardening_ | _✅ Complete_ | _JWT, bcrypt, rate-limit, CSRF, validation_ |
-| _Sprint 1B_ | _Data Layer Refactor_ | _⏳ Next_ | _SQLite migration_ |
-| _Sprint 1C_ | _SQLite Migration_ | _⏳ Pending_ | _Full migration + fallback_ |
+| _Sprint 1B_ | _Data Layer Refactor_ | _✅ Complete_ | _DAL + Repositories + Backup + Adapters_ |
+| _Sprint 1C_ | _SQLite Migration_ | _⏳ Next_ | _Full migration + fallback + cutover_ |
 
 ## Phase 2: 🔵 بنية بيانات ومصادر حقيقية (الأيام 4-7)
 

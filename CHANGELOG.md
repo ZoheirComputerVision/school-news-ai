@@ -1,5 +1,58 @@
 # CHANGELOG.md — سجل التغييرات
 
+## [1.2.0] — 2026-06-14 — Sprint 1B: Data Layer Refactor
+
+### Added
+- **`lib/dal/`** — Data Access Layer architecture
+  - `adapter.js` — قاعدة موحدة (interface) لجميع الـ adapters
+  - `json-adapter.js` — JsonAdapter (مستخرج من database.js القديم)
+  - `sqlite-adapter.js` — SqliteAdapter مع 9 جداول + indexes (جاهز لـ Sprint 1C)
+  - `backup.js` — خدمة نسخ احتياطي تلقائي قبل كل عملية كتابة
+  - `migration.js` — أدوات هجرة JSON → SQLite + تحقق
+  - `index.js` — نقطة الدخول الموحدة للـ DAL
+- **`lib/repositories/`** — طبقة الـ Repositories
+  - `base-repository.js` — CRUD موحد
+  - `article-repository.js` — عمليات المقالات (نشر، بحث، إحصائيات، سجلات، مشاهدات)
+  - `settings-repository.js` — إعدادات النظام (get/set/getAll/getBool/getInt)
+  - `archive-repository.js` — الأرشفة (أرشفة، ترميم، تصدير، خط زمني)
+  - `index.js` — createRepositories() factory
+
+### Changed
+- **`database.js`** — إعادة هيكلة كاملة: أصبح Facade يستخدم DAL داخلياً
+  - يحافظ على التوافقية العكسية (كل دوال `db.query`, `db.get`, إلخ ما زالت تعمل)
+  - يصدّر `db.adapter`, `db.repos`, `db.articles`, `db.settings`, `db.archive`
+- **`routes/api.js`** — يستخدم `articles` و `archiveRepo` بدلاً من `db.query()` المباشر
+- **`routes/admin.js`** — يستخدم `articles`, `settingsRepo`, `archiveRepo`
+- **`modules/publisher.js`** — يستخدم ArticleRepository + SettingsRepository + ArchiveRepository
+- **`modules/scheduler.js`** — يستخدم repositories
+- **`modules/seed.js`** — يستخدم ArticleRepository + ArchiveRepository
+- **`modules/archiver.js`** — غلاف رفيع حول ArchiveRepository
+- **`modules/analyzer.js`** — يستخدم ArticleRepository
+- **`modules/writer.js`** — يستخدم ArticleRepository
+- **`modules/collector.js`** — يستخدم repositories للمصادر والبيانات الخام
+- **`package.json`** — إضافة `better-sqlite3`
+
+### Architecture
+```
+database.js (Facade)
+  └─ lib/dal/ (DAL)
+       ├─ index.js          ← initialize(dbType)
+       ├─ adapter.js        ← interface
+       ├─ json-adapter.js   ← active
+       ├─ sqlite-adapter.js ← ready (Sprint 1C)
+       ├─ backup.js         ← auto backup on write
+       └─ migration.js      ← JSON → SQLite
+  └─ lib/repositories/
+       ├─ base-repository.js
+       ├─ article-repository.js
+       ├─ settings-repository.js
+       └─ archive-repository.js
+```
+
+### Security
+- Backup تلقائي قبل كل عملية كتابة (create/update/delete/upsert)
+- النسخ في `data/backups/YYYY-MM-DD/` مع تنظيف آلي بعد 7 أيام
+
 ## [1.1.0] — 2026-06-13 — Sprint 1A: Security Hardening
 
 ### Added

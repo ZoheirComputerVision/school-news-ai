@@ -1,4 +1,7 @@
 const db = require('../database');
+const { ArticleRepository } = require('../lib/repositories/article-repository');
+
+const articles = new ArticleRepository(db.adapter);
 
 const FOOTER_AI = '\n\n—\n🖋 تم إنتاج هذا المحتوى بمساعدة تقنيات الذكاء الاصطناعي. يخضع هذا المحتوى للمراجعة الآلية والبشرية قبل وبعد النشر.';
 const FOOTER_OFFICIAL = '\n\n—\n📝 محتوى رسمي معتمد من إدارة ثانوية المجاهد خليل محمد.';
@@ -76,7 +79,7 @@ ${data.body || ''}
   }
 
   async generateForContent(contentId) {
-    const content = db.get('processed_content', contentId);
+    const content = articles.findById(contentId);
     if (!content) return null;
 
     const article = this.generateArticle({
@@ -87,13 +90,13 @@ ${data.body || ''}
       source_name: content.source_name,
     });
 
-    db.update('processed_content', contentId, {
+    articles.update(contentId, {
       body: article,
       writer_version: 'writer-v2',
       is_ai_generated: 1,
     });
 
-    db.insert('ai_decision_log', {
+    db.adapter.create('ai_decision_log', {
       content_id: contentId,
       decision_type: 'content_generation',
       input_data: JSON.stringify({ title: content.title, category: content.category, length: content.body?.length }),
