@@ -36,6 +36,18 @@
 - [x] **`GET /api/homepage`** — نقطة نهاية API واحدة للصفحة الرئيسية
 - [x] **`HOMEPAGE_REDESIGN_REPORT.md`** — تقرير كامل
 
+## ✅ Phase 2D Complete — Advertising & Revenue Layer
+
+### المنجز:
+- [x] **`modules/ads/`** — 4 موديولات: AdInventory, CampaignManager, Tracker, Migrate
+- [x] **6 مناطق إعلانية**: homepage-top, homepage-middle, homepage-bottom, article-sidebar, article-inline, archive-page
+- [x] **API 12 نقطة نهاية**: إدارة الحملات والمعلنين والمناطق والتتبع والتقارير
+- [x] **`admin/ads-center.html`** — لوحة تحكم الإعلانات كاملة
+- [x] **`public/js/newspaper.js`** — دمج الإعلانات في الصفحة الرئيسية (3 مناطق)
+- [x] **إخفاء تلقائي**: المناطق الفارغة لا تظهر
+- [x] **تتبع الأحداث**: Impression + click beacons
+- [x] **تقارير**: يومية/أسبوعية/شهرية مع أفضل الحملات
+
 ---
 
 ## المهمة التالية: Phase 3 — تحسينات متقدمة
@@ -52,7 +64,7 @@
 | `config.js` | API keys للذكاء الاصطناعي |
 
 ### أولويات للجلسة القادمة:
-1. اختبار شامل للصفحة الرئيسية المعاد تصميمها — تحقق من جميع الأقسام الـ 9
+1. إضافة إعلانات الصفحات الداخلية (article-sidebar, article-inline, archive-page)
 2. تفعيل SQLite: إضافة `DB_TYPE=sqlite` إلى `.env`
 3. ربط Facebook Graph API الحقيقي: إضافة `FACEBOOK_ACCESS_TOKEN` إلى `.env`
 4. إنشاء sitemap.xml لتحسين SEO
@@ -63,3 +75,4 @@
 - **Header الجديد** يحافظ على شعار "الصوت المحلي" كما هو — بدون تغيير
 - **الصفحة الرئيسية** تستخدم `GET /api/homepage` الآن — نقطة نهاية واحدة لكل البيانات
 - **المناطق الإعلانية** مخفية تلقائياً عند عدم وجود محتوى إعلاني
+- **مركز الإعلانات** متاح في `/admin/ads-center.html`

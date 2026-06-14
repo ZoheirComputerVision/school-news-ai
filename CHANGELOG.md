@@ -1,5 +1,54 @@
 # CHANGELOG.md — سجل التغييرات
 
+## [v2.6.0] — 2026-06-14 — Phase 2D: Advertising & Revenue Layer
+
+### Added
+- **`modules/ads/`** — نظام إعلانات متكامل (4 موديولات):
+  - `ad-inventory.js` — 6 مناطق إعلانية مع اختيار عشوائي للحملات النشطة
+  - `campaign-manager.js` — إدارة الحملات (CRUD + حالات: draft→active→paused→completed + إحصائيات)
+  - `tracker.js` — تتبع مرات الظهور والنقرات + تقارير يومية/أسبوعية/شهرية + أفضل الحملات
+  - `migrate.js` — التحقق من وجود جداول الإعلانات عند بدء التشغيل
+- **`routes/ads.js`** — 12 نقطة نهاية API:
+  - `GET /api/ads/campaigns` — قائمة الحملات
+  - `GET /api/ads/campaigns/:id` — حملة محددة
+  - `GET /api/ads/zones` — المناطق الإعلانية
+  - `GET /api/ads/zone/:zoneId` — إعلان نشط لمنطقة (اختيار عشوائي)
+  - `GET /api/ads/advertisers` — المعلنون
+  - `POST /api/ads/advertisers` — إنشاء معلن
+  - `POST /api/ads/create` — إنشاء حملة
+  - `PUT /api/ads/update/:id` — تحديث حملة
+  - `POST /api/ads/pause/:id` / `activate/:id` / `delete/:id` — تحكم بالحملات
+  - `GET /api/ads/stats` — إحصائيات كاملة
+  - `POST /api/ads/track/impression/:id` / `track/click/:id` — تتبع الأحداث
+  - `GET /api/ads/reports/daily` / `weekly` / `monthly` — تقارير
+- **`admin/ads-center.html`** — لوحة تحكم الإعلانات:
+  - بطاقات ملخص (إجمالي/نشط/ظهور/نقرات/CTR)
+  - تبويبات: الحملات، المعلنون، المناطق، التقارير، حملة جديدة
+  - جداول مع إجراءات (تفعيل/إيقاف/حذف)
+  - مودال إضافة معلن
+  - نموذج إنشاء حملة مع اختيار المعلن والمنطقة
+  - تقارير يومية/أسبوعية/شهرية مع أفضل 5 حملات
+
+### Changed
+- `lib/dal/json-adapter.js` — إضافة جداول `advertisers` و `campaigns` و `ad_events` إلى `init()`
+- `server.js` — تركيب مسارات الإعلانات `/api/ads` واستدعاء `ensureAdTables()` عند بدء التشغيل
+- `public/js/newspaper.js` — إضافة دالة `renderAds()` لجلب الإعلانات من 3 مناطق وعرضها مع تتبع الظهور والنقر
+- `public/js/newspaper.js` — إصلاح نص فارغ به حروف صينية (لا توجد أخبار جهوية)
+- `.gitignore` — إضافة ملفات بيانات الإعلانات (`advertisers.json`, `campaigns.json`, `ad_events.json`)
+
+### Architecture Phase 2D
+```
+modules/ads/           routes/ads.js          admin/ads-center.html
+├── ad-inventory.js     GET/POST/PUT/DELETE    └── Dashboard UI
+├── campaign-manager.js  ──→ 12 endpoints          campaigns, advertisers,
+├── tracker.js                                    zones, reports, new campaign
+└── migrate.js
+
+Homepage Integration:
+  newspaper.js.renderAds() → GET /api/ads/zone/:zoneId → ad payload → render in hp-ad-1/hp-ad-2
+  → POST /api/ads/track/impression/:id (on view) + POST /track/click/:id (on click)
+```
+
 ## [v2.5.0] — 2026-06-14 — Phase 2C.1: Editorial Homepage Redesign
 
 ### Added

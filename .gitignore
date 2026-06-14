@@ -8,6 +8,9 @@ data/fb_replies.json
 data/views.json
 data/admin_actions.json
 data/editorial_*.json
+data/advertisers.json
+data/campaigns.json
+data/ad_events.json
 data/backups/
 public/uploads/
 server-test.log

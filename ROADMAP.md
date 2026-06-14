@@ -43,8 +43,16 @@
 |   | - 9 editorial sections (Breaking, Hero, Latest, Regional, Trending, Dev, Culture+Society, Sports, Ads) | ✅ |
 |   | - AI-powered content selection via HomepageSelector | ✅ |
 |   | - Stats bar removed, empty ads hidden, SEO JSON-LD | ✅ |
-| 8 | [ ] Caching layer (Redis or LRU) | ⏳ |
-| 9 | [✓] Navigation & Information Architecture Enhancement | ✅ تم |
+| 8 | [✓] **Phase 2D: Advertising & Revenue Layer** | ✅ تم |
+|   | - 6 ad zones (728×90, 300×250, 468×60) with random selection | ✅ |
+|   | - Campaign management (draft→active→paused→completed) | ✅ |
+|   | - Advertiser management (CRUD) | ✅ |
+|   | - Impression/click tracking with event log | ✅ |
+|   | - Advertising dashboard (summary, zones, campaigns, reports) | ✅ |
+|   | - Homepage ad integration (auto-hide, lazy load, beacon tracking) | ✅ |
+|   | - Daily/weekly/monthly reports with top campaigns | ✅ |
+| 9 | [ ] Caching layer (Redis or LRU) | ⏳ |
+| 10 | [✓] Navigation & Information Architecture Enhancement | ✅ تم |
 
 ## Phase 3: ⚫ Neo Vintage Newspaper Design (الأيام 8-14)
 

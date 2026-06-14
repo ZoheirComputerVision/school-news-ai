@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مركز الإعلانات | الصوت المحلي</title>
+<link rel="stylesheet" href="/admin/admin.css">
+<style>
+:root { --primary: #1a3a5c; --primary-dark: #0f2440; --accent: #c8a951; --accent-light: #e8d48b; --danger: #c0392b; --success: #27ae60; --warning: #f39c12; --gray: #666; --gray-light: #999; --border: #d4c9b8; --bg: #f4f1ea; --white: #fff; --radius: 8px; --shadow: 0 2px 12px rgba(0,0,0,0.08); }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:Tajawal, sans-serif; background:var(--bg); color:var(--primary-dark); direction:rtl; }
+.container { max-width:1300px; margin:0 auto; padding:20px; }
+.header { background:var(--primary); color:var(--white); padding:15px 20px; display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid var(--accent); }
+.header h1 { font-size:1.3rem; }
+.header a { color:var(--accent-light); text-decoration:none; font-size:0.85rem; }
+.header a:hover { color:var(--accent); }
+.cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:15px; margin:20px 0; }
+.card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow); }
+.card .num { font-size:1.8rem; font-weight:800; color:var(--primary); }
+.card .label { font-size:0.78rem; color:var(--gray); margin-top:3px; }
+.tabs { display:flex; gap:5px; margin:20px 0; flex-wrap:wrap; }
+.tab { padding:8px 18px; background:var(--white); border:1px solid var(--border); border-radius:var(--radius); cursor:pointer; font-family:Tajawal,sans-serif; font-size:0.82rem; transition:all 0.3s; }
+.tab:hover { border-color:var(--primary); }
+.tab.active { background:var(--primary); color:var(--white); border-color:var(--primary); }
+.panel { display:none; background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); }
+.panel.active { display:block; }
+table { width:100%; border-collapse:collapse; font-size:0.85rem; }
+th { background:var(--primary); color:var(--white); padding:10px 12px; text-align:right; font-weight:600; }
+td { padding:10px 12px; border-bottom:1px solid var(--border); }
+tr:hover td { background:var(--bg); }
+.badge { display:inline-block; padding:2px 10px; border-radius:12px; font-size:0.72rem; font-weight:700; }
+.badge.active { background:#d5f5e3; color:var(--success); }
+.badge.draft { background:#fdebd0; color:var(--warning); }
+.badge.paused { background:#d6eaf8; color:#2980b9; }
+.badge.completed { background:#e8e8e8; color:var(--gray); }
+.btn { display:inline-flex; align-items:center; gap:4px; padding:6px 14px; border:none; border-radius:var(--radius); cursor:pointer; font-family:Tajawal,sans-serif; font-size:0.78rem; font-weight:600; transition:all 0.3s; text-decoration:none; }
+.btn-sm { padding:4px 10px; font-size:0.72rem; }
+.btn-primary { background:var(--primary); color:var(--white); }
+.btn-primary:hover { background:var(--primary-dark); }
+.btn-success { background:var(--success); color:var(--white); }
+.btn-danger { background:var(--danger); color:var(--white); }
+.btn-warning { background:var(--warning); color:var(--white); }
+.actions { display:flex; gap:4px; }
+.form-group { margin-bottom:12px; }
+.form-group label { display:block; font-size:0.8rem; font-weight:600; color:var(--primary); margin-bottom:3px; }
+.form-group input, .form-group select, .form-group textarea { width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius); font-family:Tajawal,sans-serif; font-size:0.85rem; }
+.form-group input:focus, .form-group select:focus { outline:none; border-color:var(--primary); }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center; }
+.modal.open { display:flex; }
+.modal-content { background:var(--white); border-radius:var(--radius); max-width:600px; width:90%; max-height:85vh; overflow-y:auto; padding:25px; }
+.modal-content h2 { font-size:1.1rem; margin-bottom:15px; color:var(--primary); border-bottom:2px solid var(--primary); padding-bottom:8px; }
+.mt-10 { margin-top:10px; }
+.text-muted { color:var(--gray-light); font-size:0.78rem; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>📢 مركز الإعلانات — الصوت المحلي</h1>
+  <div><a href="/admin">← العودة إلى لوحة التحكم</a></div>
+</div>
+<div class="container">
+
+  <!-- Summary Cards -->
+  <div class="cards" id="summary-cards">
+    <div class="card"><div class="num" id="stat-total">—</div><div class="label">إجمالي الحملات</div></div>
+    <div class="card"><div class="num" id="stat-active">—</div><div class="label">نشطة حالياً</div></div>
+    <div class="card"><div class="num" id="stat-impressions">—</div><div class="label">مرات الظهور</div></div>
+    <div class="card"><div class="num" id="stat-clicks">—</div><div class="label">نقرات</div></div>
+    <div class="card"><div class="num" id="stat-ctr">—</div><div class="label">CTR</div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" data-tab="tab-campaigns">📋 الحملات</button>
+    <button class="tab" data-tab="tab-advertisers">🏢 المعلنون</button>
+    <button class="tab" data-tab="tab-zones">📍 المناطق الإعلانية</button>
+    <button class="tab" data-tab="tab-reports">📊 التقارير</button>
+    <button class="tab" data-tab="tab-new">➕ حملة جديدة</button>
+  </div>
+
+  <!-- Tab: Campaigns -->
+  <div class="panel active" id="tab-campaigns">
+    <table><thead><tr><th>#</th><th>العنوان</th><th>المعلن</th><th>المنطقة</th><th>الحالة</th><th>ظهور</th><th>نقرات</th><th>البداية</th><th>النهاية</th><th></th></tr></thead><tbody id="campaigns-tbody"></tbody></table>
+  </div>
+
+  <!-- Tab: Advertisers -->
+  <div class="panel" id="tab-advertisers">
+    <div style="margin-bottom:12px;"><button class="btn btn-primary" onclick="showNewAdvertiser()">➕ إضافة معلن</button></div>
+    <table><thead><tr><th>#</th><th>الشركة</th><th>جهة الاتصال</th><th>البريد</th><th>الهاتف</th></tr></thead><tbody id="advertisers-tbody"></tbody></table>
+  </div>
+
+  <!-- Tab: Zones -->
+  <div class="panel" id="tab-zones">
+    <table><thead><tr><th>المعرف</th><th>المنطقة</th><th>الأبعاد</th><th>النوع</th><th>الحملات النشطة</th></tr></thead><tbody id="zones-tbody"></tbody></table>
+  </div>
+
+  <!-- Tab: Reports -->
+  <div class="panel" id="tab-reports">
+    <div class="cards" style="margin-bottom:15px;">
+      <div class="card" id="rp-daily"><div class="num">—</div><div class="label">اليوم (ظهور)</div></div>
+      <div class="card" id="rp-weekly"><div class="num">—</div><div class="label">7 أيام (ظهور)</div></div>
+      <div class="card" id="rp-monthly"><div class="num">—</div><div class="label">30 يوماً (ظهور)</div></div>
+    </div>
+    <h3 style="font-size:0.95rem;color:var(--primary);margin-bottom:8px;">أفضل الحملات (شهري)</h3>
+    <table><thead><tr><th>الحملة</th><th>ظهور</th><th>نقرات</th><th>CTR</th></tr></thead><tbody id="top-campaigns-tbody"></tbody></table>
+  </div>
+
+  <!-- Tab: New Campaign -->
+  <div class="panel" id="tab-new">
+    <form id="campaign-form">
+      <div class="form-group"><label>عنوان الحملة</label><input type="text" id="f-title" required></div>
+      <div class="form-group"><label>الوصف</label><textarea id="f-desc" rows="3"></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>المعلن</label><select id="f-advertiser" required></select></div>
+        <div class="form-group"><label>المنطقة الإعلانية</label><select id="f-zone" required></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>تاريخ البداية</label><input type="date" id="f-start"></div>
+        <div class="form-group"><label>تاريخ النهاية</label><input type="date" id="f-end"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>رابط الصورة</label><input type="url" id="f-image" placeholder="https://..."></div>
+        <div class="form-group"><label>رابط الهدف</label><input type="url" id="f-link" placeholder="https://..."></div>
+      </div>
+      <div class="form-group"><label>الميزانية (د.ج)</label><input type="number" id="f-budget"></div>
+      <button type="submit" class="btn btn-success mt-10">💾 إنشاء الحملة</button>
+    </form>
+  </div>
+</div>
+
+<!-- Advertiser Modal -->
+<div class="modal" id="adv-modal"><div class="modal-content">
+  <h2>➕ إضافة معلن جديد</h2>
+  <form id="adv-form">
+    <div class="form-group"><label>اسم الشركة *</label><input type="text" id="adv-company" required></div>
+    <div class="form-row">
+      <div class="form-group"><label>جهة الاتصال</label><input type="text" id="adv-contact"></div>
+      <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="adv-email"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>رقم الهاتف</label><input type="tel" id="adv-phone"></div>
+      <div class="form-group"><label>الموقع الإلكتروني</label><input type="url" id="adv-website"></div>
+    </div>
+    <div class="form-group"><label>ملاحظات</label><textarea id="adv-notes" rows="2"></textarea></div>
+    <button type="submit" class="btn btn-success mt-10">💾 حفظ</button>
+    <button type="button" class="btn" onclick="closeModal('adv-modal')" style="margin-right:8px;">❌ إلغاء</button>
+  </form>
+</div></div>
+
+<script>
+const API_BASE = '/api/ads';
+
+async function api(path, opts = {}) {
+  const res = await fetch(API_BASE + path, {
+    headers: { 'Content-Type': 'application/json', ...opts.headers },
+    ...opts,
+  });
+  if (!res.ok) { let msg; try { const e = await res.json(); msg = e.error; } catch { msg = res.statusText; } throw new Error(msg); }
+  return res.json();
+}
+
+async function loadAll() {
+  await loadCampaigns();
+  await loadAdvertisers();
+  await loadZones();
+  await loadReports();
+  await loadStats();
+}
+
+async function loadStats() {
+  try {
+    const s = await api('/stats');
+    document.getElementById('stat-total').textContent = s.total_campaigns || 0;
+    document.getElementById('stat-active').textContent = s.active_campaigns || 0;
+    document.getElementById('stat-impressions').textContent = (s.total_impressions || 0).toLocaleString();
+    document.getElementById('stat-clicks').textContent = (s.total_clicks || 0).toLocaleString();
+    document.getElementById('stat-ctr').textContent = s.ctr + '%';
+  } catch (e) { console.error('Stats error:', e); }
+}
+
+async function loadCampaigns() {
+  try {
+    const data = await api('/campaigns');
+    const advertisers = await api('/advertisers');
+    const advMap = {};
+    (advertisers.advertisers || []).forEach(a => { advMap[a.id] = a.company_name; });
+    const tbody = document.getElementById('campaigns-tbody');
+    if (!data.campaigns || !data.campaigns.length) {
+      tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--gray);padding:30px;">لا توجد حملات إعلانية بعد</td></tr>';
+      return;
+    }
+    tbody.innerHTML = data.campaigns.map(c => `
+      <tr>
+        <td>${c.id}</td>
+        <td><strong>${c.title}</strong></td>
+        <td>${advMap[c.advertiser_id] || '—'}</td>
+        <td style="font-size:0.75rem;">${c.target_zone || '—'}</td>
+        <td><span class="badge ${c.status}">${c.status === 'active' ? 'نشطة' : c.status === 'draft' ? 'مسودة' : c.status === 'paused' ? 'متوقفة' : 'منتهية'}</span></td>
+        <td>${(c.impressions || 0).toLocaleString()}</td>
+        <td>${(c.clicks || 0).toLocaleString()}</td>
+        <td style="font-size:0.75rem;">${c.start_date || '—'}</td>
+        <td style="font-size:0.75rem;">${c.end_date || '—'}</td>
+        <td class="actions">
+          ${c.status === 'draft' ? `<button class="btn btn-success btn-sm" onclick="activateCampaign(${c.id})">▶ تفعيل</button>` : ''}
+          ${c.status === 'active' ? `<button class="btn btn-warning btn-sm" onclick="pauseCampaign(${c.id})">⏸ إيقاف</button>` : ''}
+          ${c.status !== 'completed' ? `<button class="btn btn-danger btn-sm" onclick="deleteCampaign(${c.id})">🗑</button>` : ''}
+        </td>
+      </tr>
+    `).join('');
+  } catch (e) { console.error('Campaigns error:', e); }
+}
+
+async function loadAdvertisers() {
+  try {
+    const data = await api('/advertisers');
+    const tbody = document.getElementById('advertisers-tbody');
+    if (!data.advertisers || !data.advertisers.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--gray);padding:30px;">لا يوجد معلنون</td></tr>';
+      return;
+    }
+    tbody.innerHTML = data.advertisers.map(a => `
+      <tr><td>${a.id}</td><td><strong>${a.company_name}</strong></td><td>${a.contact_name || '—'}</td><td>${a.email || '—'}</td><td>${a.phone || '—'}</td></tr>
+    `).join('');
+    // Populate advertiser select in campaign form
+    const sel = document.getElementById('f-advertiser');
+    sel.innerHTML = '<option value="">اختر المعلن</option>' + data.advertisers.map(a => `<option value="${a.id}">${a.company_name}</option>`).join('');
+  } catch (e) { console.error('Advertisers error:', e); }
+}
+
+async function loadZones() {
+  try {
+    const data = await api('/zones');
+    const zones = data.zones || {};
+    const stats = await api('/stats');
+    const byZone = stats.by_zone || {};
+    const tbody = document.getElementById('zones-tbody');
+    tbody.innerHTML = Object.entries(zones).map(([id, z]) => {
+      const zoneStats = byZone[id] || { count: 0 };
+      return `<tr><td style="direction:ltr;font-size:0.75rem;">${id}</td><td>${z.name}</td><td>${z.width}×${z.height}</td><td>${z.type}</td><td>${zoneStats.count || 0}</td></tr>`;
+    }).join('');
+    // Populate zone select in campaign form
+    const sel = document.getElementById('f-zone');
+    sel.innerHTML = '<option value="">اختر المنطقة</option>' + Object.entries(zones).map(([id, z]) => `<option value="${id}">${z.name} (${z.width}×${z.height})</option>`).join('');
+  } catch (e) { console.error('Zones error:', e); }
+}
+
+async function loadReports() {
+  try {
+    const stats = await api('/stats');
+    if (stats.daily) document.getElementById('rp-daily').innerHTML = `<div class="num">${stats.daily.impressions}</div><div class="label">اليوم (ظهور)</div>`;
+    if (stats.weekly) document.getElementById('rp-weekly').innerHTML = `<div class="num">${stats.weekly.impressions}</div><div class="label">7 أيام (ظهور)</div>`;
+    if (stats.monthly) {
+      document.getElementById('rp-monthly').innerHTML = `<div class="num">${stats.monthly.impressions}</div><div class="label">30 يوماً (ظهور)</div>`;
+      const topTbody = document.getElementById('top-campaigns-tbody');
+      const top = stats.monthly.top_campaigns || [];
+      if (top.length) {
+        topTbody.innerHTML = top.map(t => {
+          const ctr = t.impressions > 0 ? ((t.clicks / t.impressions) * 100).toFixed(2) : 0;
+          return `<tr><td>${t.title}</td><td>${t.impressions}</td><td>${t.clicks}</td><td>${ctr}%</td></tr>`;
+        }).join('');
+      } else {
+        topTbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--gray);">لا توجد بيانات كافية</td></tr>';
+      }
+    }
+  } catch (e) { console.error('Reports error:', e); }
+}
+
+async function activateCampaign(id) {
+  try { await api(`/activate/${id}`, { method: 'POST' }); await loadAll(); } catch (e) { alert(e.message); }
+}
+async function pauseCampaign(id) {
+  try { await api(`/pause/${id}`, { method: 'POST' }); await loadAll(); } catch (e) { alert(e.message); }
+}
+async function deleteCampaign(id) {
+  if (!confirm('هل أنت متأكد من حذف هذه الحملة؟')) return;
+  try { await api(`/delete/${id}`, { method: 'DELETE' }); await loadAll(); } catch (e) { alert(e.message); }
+}
+
+function showNewAdvertiser() { document.getElementById('adv-modal').classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.getElementById('adv-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  try {
+    await api('/advertisers', {
+      method: 'POST',
+      body: JSON.stringify({
+        company_name: document.getElementById('adv-company').value,
+        contact_name: document.getElementById('adv-contact').value,
+        email: document.getElementById('adv-email').value,
+        phone: document.getElementById('adv-phone').value,
+        website: document.getElementById('adv-website').value,
+        notes: document.getElementById('adv-notes').value,
+      }),
+    });
+    closeModal('adv-modal');
+    document.getElementById('adv-form').reset();
+    await loadAll();
+  } catch (e) { alert(e.message); }
+});
+
+document.getElementById('campaign-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  try {
+    await api('/create', {
+      method: 'POST',
+      body: JSON.stringify({
+        advertiser_id: parseInt(document.getElementById('f-advertiser').value),
+        title: document.getElementById('f-title').value,
+        description: document.getElementById('f-desc').value,
+        start_date: document.getElementById('f-start').value,
+        end_date: document.getElementById('f-end').value,
+        target_zone: document.getElementById('f-zone').value,
+        image_url: document.getElementById('f-image').value,
+        link_url: document.getElementById('f-link').value,
+        budget: parseInt(document.getElementById('f-budget').value) || 0,
+        status: 'draft',
+      }),
+    });
+    document.getElementById('campaign-form').reset();
+    await loadAll();
+    document.querySelector('[data-tab="tab-campaigns"]').click();
+    alert('✅ تم إنشاء الحملة بنجاح');
+  } catch (e) { alert(e.message); }
+});
+
+// Tab switching
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.tab).classList.add('active');
+  });
+});
+
+// Modal close on overlay click
+document.querySelectorAll('.modal').forEach(m => {
+  m.addEventListener('click', (e) => { if (e.target === m) m.classList.remove('open'); });
+});
+
+loadAll();
+</script>
+</body>
+</html>

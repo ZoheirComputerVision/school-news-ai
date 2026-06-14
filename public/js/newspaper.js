@@ -22,6 +22,7 @@ const NP = {
       this.renderCultureSociety(data.culture, data.society);
       this.renderSports(data.sports);
       this.renderFooterNav(data.nav);
+      this.renderAds();
       this.updateTimestamps();
       this.setupAutoRefresh();
       this.lazyLoad();
@@ -131,7 +132,7 @@ const NP = {
   renderRegional(items) {
     const container = document.getElementById('np-regional-grid');
     if (!container) return;
-    if (!items || !items.length) { container.innerHTML = '<p style="text-align:center;color:var(--np-gray);padding:20px;">لا توجد أخبار区域ية</p>'; return; }
+    if (!items || !items.length) { container.innerHTML = '<p style="text-align:center;color:var(--np-gray);padding:20px;">لا توجد أخبار جهوية</p>'; return; }
 
     let html = '<div class="hp-regional-grid">';
     items.forEach(item => {
@@ -248,6 +249,40 @@ const NP = {
     });
     html += '</div>';
     container.innerHTML = html;
+  },
+
+  async renderAds() {
+    const zones = ['homepage-top', 'homepage-middle', 'homepage-bottom'];
+    for (const zoneId of zones) {
+      try {
+        const data = await API.get(`/ads/zone/${zoneId}`);
+        if (data && data.ad) {
+          const sectionId = zoneId === 'homepage-top' ? 'hp-ad-1' : zoneId === 'homepage-bottom' ? 'hp-ad-2' : null;
+          if (!sectionId) continue;
+          const section = document.getElementById(sectionId);
+          if (!section) continue;
+          const contentDiv = document.getElementById(sectionId === 'hp-ad-1' ? 'np-ad-content-1' : 'np-ad-content-2');
+          if (!contentDiv) continue;
+          const ad = data.ad;
+          let adHtml = '';
+          if (ad.image_url) {
+            adHtml += `<a href="${ad.link_url || '#'}" target="_blank" rel="noopener" onclick="API.post('/ads/track/click/${ad.id}',{}).catch(()=>{})">`;
+            adHtml += `<img src="${ad.image_url}" alt="${ad.title}" style="max-width:100%;height:auto;" loading="lazy">`;
+            adHtml += '</a>';
+          } else {
+            adHtml += `<a href="${ad.link_url || '#'}" target="_blank" rel="noopener" style="display:block;padding:20px;background:var(--np-primary);color:var(--np-white);text-align:center;border-radius:8px;text-decoration:none;" onclick="API.post('/ads/track/click/${ad.id}',{}).catch(()=>{})">`;
+            adHtml += `<strong style="font-size:1.1rem;">${ad.title}</strong>`;
+            adHtml += `<br><span style="font-size:0.78rem;">${ad.advertiser || ''}</span>`;
+            adHtml += '</a>';
+          }
+          contentDiv.innerHTML = adHtml;
+          section.style.display = 'block';
+          API.post(`/ads/track/impression/${ad.id}`, {}).catch(() => {});
+        }
+      } catch (e) {
+        // Zone has no active ad or error — keep hidden
+      }
+    }
   },
 
   renderFooterNav(nav) {

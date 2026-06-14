@@ -26,7 +26,21 @@
 │          Express Router: /api, /api/admin                  │
 │    Content CRUD, Search, Stats, Timeline, View Tracking    │
  ├──────────────────────────────────────────────────────────┤
-│                   AI PIPELINE (PHASE 2C)                    │
+│                   AD LAYER (PHASE 2D)                         │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────┐            │
+│  │ AdInventory  │  │ CampaignMgr  │  │ Tracker  │            │
+│  │ (6 zones,    │  │ (CRUD,       │  │ (impr/   │            │
+│  │  random sel) │  │  statuses,   │  │  click,  │            │
+│  │              │  │  stats)      │  │  reports)│            │
+│  └──────┬───────┘  └──────┬───────┘  └────┬─────┘            │
+│         └─────────────────┼───────────────┘                   │
+│                           ▼                                   │
+│  ┌──────────────────────────────────────────┐                 │
+│  │  advertisers / campaigns / ad_events     │                 │
+│  │  (JSON tables, SQLite ready)             │                 │
+│  └──────────────────────────────────────────┘                 │
+├──────────────────────────────────────────────────────────┤
+│                     AI PIPELINE (PHASE 2C)                    │
 │  ┌──────────┐  ┌──────────────┐  ┌──────────┐            │
 │  │Collector │→ │ Editorial    │→ │  Writer  │→ Publisher │
 │  │(per src) │  │ Classifier   │  │(SEO gen) │  (workflow)│
@@ -160,6 +174,9 @@ Each pipeline step writes to ai_decision_log:
 | admin_actions | `data/admin_actions.json` | id, action, details |
 | settings | `data/settings.json` | key, value |
 | views | `data/views.json` | id, content_id, ip |
+| advertisers | `data/advertisers.json` | id, company_name, contact_name, email, phone |
+| campaigns | `data/campaigns.json` | id, advertiser_id, title, status, target_zone, impressions, clicks |
+| ad_events | `data/ad_events.json` | id, campaign_id, event_type, timestamp |
 
 ## 5. Security Architecture
 
