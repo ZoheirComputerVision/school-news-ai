@@ -1,5 +1,64 @@
 # CHANGELOG.md — سجل التغييرات
 
+## [v2.5.0] — 2026-06-14 — Phase 2C.1: Editorial Homepage Redesign
+
+### Added
+- **`modules/editorial/homepage-selector.js`** — AI content selection module
+  - `buildHomepage()` — يبني بيانات الصفحة الرئيسية الكاملة
+  - اختيار البطل: 40% ثقة + 30% أولوية المحرر + 20% ثقة التصنيف + 0.1% مشاهدات
+  - اختيار الأكثر قراءة حسب عداد المشاهدات
+  - اختيار أخبار المنطقة حسب التصنيف
+- **`GET /api/homepage`** — نقطة نهاية API للصفحة الرئيسية (بيانات JSON كاملة)
+- **Header ثلاثي الطبقات**:
+  - Layer 1 — Utility Bar (تاريخ، طقس، روابط سريعة، محدد لغة)
+  - Layer 2 — Newspaper Masthead ("الصوت المحلي" + الشعارات + التاريخ)
+  - Layer 3 — Sticky Navigation (11 عنصراً)
+- **9 أقسام تحريرية جديدة**:
+  - شريط الأخبار العاجلة (أحمر مع عناوين متحركة)
+  - منطقة البطل (1 رئيسي + 2 ثانوي)
+  - شبكة آخر الأخبار (3 أعمدة، 6-12 بطاقة)
+  - أخبار المنطقة (عمودين)
+  - الأكثر قراءة (مرقم، عمودين)
+  - التنمية (قائمة رأسية)
+  - ثقافة + مجتمع (عمودين جنباً إلى جنب)
+  - رياضة (3 أعمدة)
+  - إعلانات (إخفاء تلقائي عند الفراغ)
+- **إزالة شريط الإحصائيات** — تمت إزالة قسم الإحصائيات الفارغ (0 0 0 0 0 0)
+- **SEO**: JSON-LD structured data مع NewsArticle schema
+- **تحميل كسول**: Lazy loading لجميع الصور + IntersectionObserver
+- **تحديث تلقائي**: Auto-refresh كل 3 دقائق
+
+### Changed
+- `public/index.html` — إعادة كتابة كاملة بهيكل الصحيفة الجديد
+- `public/js/newspaper.js` — إعادة كتابة لعرض ديناميكي لجميع الأقسام
+- `public/css/newspaper.css` — إضافة ~400 سطر لأنماط الأقسام الجديدة (utility bar, hero, latest, regional, trending, sports, footer grid)
+- `routes/api.js` — إضافة `GET /api/homepage`
+- `public/js/api.js` — إضافة `getHomepage()`
+
+### Fixed
+- إخفاء المناطق الإعلانية الفارغة تلقائياً (`display:none`)
+- لا تظهر قوالب الإعلانات الفراغية
+
+### Architecture
+```
+index.html (3-layer header)
+  ├── Layer 1: Utility Bar (date, weather, links)
+  ├── Layer 2: Masthead (logo, taglines, date)
+  └── Layer 3: Sticky Nav (11 items)
+  
+  GET /api/homepage
+    └── HomepageSelector.buildHomepage()
+          ├── hero (featured + secondary)
+          ├── breaking (event category)
+          ├── latest (by publish date)
+          ├── regional (regional-news category)
+          ├── trending (by view count)
+          ├── development / culture / society / sports
+          └── nav (config items)
+  
+  newspaper.js renders all 9 sections dynamically
+```
+
 ## [v2.4.0] — 2026-06-14 — Phase 2B.2: Navigation & Information Architecture Enhancement
 
 ### Added

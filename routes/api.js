@@ -173,6 +173,13 @@ router.get('/search', (req, res) => {
   res.json({ items, total: items.length, query: q });
 });
 
+router.get('/homepage', (req, res) => {
+  const HomepageSelector = require('../modules/editorial/homepage-selector');
+  const selector = new HomepageSelector();
+  const data = selector.buildHomepage();
+  res.json(data);
+});
+
 router.get('/recent', (req, res) => {
   const items = articles.find(c => c.status === 'published')
     .sort((a, b) => (b.published_at || '').localeCompare((a.published_at || '')))

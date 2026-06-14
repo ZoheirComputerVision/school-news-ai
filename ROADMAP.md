@@ -38,8 +38,13 @@
 |   | - AI Writer with SEO metadata (meta description, tags, slug) | ✅ |
 |   | - Editorial review workflow + priority publishing queue | ✅ |
 |   | - AI Governance dashboard (decision chain viewer + confidence scores) | ✅ |
-| 7 | [ ] Caching layer (Redis or LRU) | ⏳ |
-| 8 | [✓] Navigation & Information Architecture Enhancement | ✅ تم |
+| 7 | [✓] Editorial Homepage Redesign (Phase 2C.1) | ✅ تم |
+|   | - 3-layer header (Utility Bar + Masthead + Sticky Nav) | ✅ |
+|   | - 9 editorial sections (Breaking, Hero, Latest, Regional, Trending, Dev, Culture+Society, Sports, Ads) | ✅ |
+|   | - AI-powered content selection via HomepageSelector | ✅ |
+|   | - Stats bar removed, empty ads hidden, SEO JSON-LD | ✅ |
+| 8 | [ ] Caching layer (Redis or LRU) | ⏳ |
+| 9 | [✓] Navigation & Information Architecture Enhancement | ✅ تم |
 
 ## Phase 3: ⚫ Neo Vintage Newspaper Design (الأيام 8-14)
 

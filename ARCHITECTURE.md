@@ -188,7 +188,7 @@ Each pipeline step writes to ai_decision_log:
 ### Routes
 | Path | Page | Description |
 |------|------|-------------|
-| `/` | index.html | Homepage with featured + editorial grid |
+| `/` | index.html | Homepage — 3-layer header, hero zone, 9 editorial sections, AI-powered content selection via GET /api/homepage |
 | `/section/:category` | section.html | Dynamic section pages per category |
 | `/article/:id` | article.html | Single article view |
 | `/archive` | archive.html | Archive by year/month/category |
@@ -201,6 +201,7 @@ Each pipeline step writes to ai_decision_log:
 | `GET /api/latest-news` | Latest 10 headlines for ticker |
 | `GET /api/section/:category` | Section data (featured, latest, mostViewed, meta) |
 | `GET /api/archive-data` | Archive grouped by year/month/category |
+| `GET /api/homepage` | Full homepage data (hero, breaking, latest, regional, trending, development, culture, society, sports) — AI-powered via HomepageSelector |
 
 ### Components
 - **Sticky Navigation** — 11-item main nav with dropdown support, mobile hamburger menu, sticky on scroll

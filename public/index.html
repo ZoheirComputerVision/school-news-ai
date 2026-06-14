@@ -4,105 +4,241 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="الصوت المحلي - منصة جهوية للإعلام العام والتنمية المحلية - ولاية تيارت">
+  <meta property="og:title" content="الصوت المحلي">
+  <meta property="og:description" content="منصة جهوية للإعلام العام والتنمية المحلية - ولاية تيارت">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="الصوت المحلي">
   <meta data-auto-refresh="180000">
   <title>الصوت المحلي</title>
   <link rel="stylesheet" href="/css/newspaper.css">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F4F0;</text></svg>">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    "headline": "الصوت المحلي - منصة جهوية للإعلام العام والتنمية المحلية",
+    "description": "منصة جهوية للإعلام العام والتنمية المحلية - ولاية تيارت",
+    "publisher": {
+      "@type": "Organization",
+      "name": "الصوت المحلي",
+      "url": "https://school-news-ai-209c.apps.hostingguru.io"
+    },
+    "url": "https://school-news-ai-209c.apps.hostingguru.io"
+  }
+  </script>
 </head>
 <body>
 
-  <!-- ═══ TOP BAR ═══ -->
-  <div class="np-top-bar">
+  <!-- ═══ LAYER 1: UTILITY BAR ═══ -->
+  <div class="np-utility-bar">
     <div class="container">
-      <span class="date">📅 <span id="np-date"></span></span>
-      <span class="edition">العدد <span id="np-hijri">870</span> — السنة الثالثة</span>
-      <div id="global-search" style="display:none"></div>
+      <div class="utility-left">
+        <span class="utility-date">📅 <span id="np-date"></span></span>
+        <span class="utility-edition">العدد <span id="np-issue">—</span></span>
+      </div>
+      <div class="utility-right">
+        <span class="utility-weather" id="np-weather"><span class="utility-icon">🌤</span> <span id="np-temp">—</span>°</span>
+        <span class="utility-sep">|</span>
+        <a href="/" class="utility-lang active">🇸🇦 العربية</a>
+        <span class="utility-sep">|</span>
+        <a href="/archive" class="utility-link">📚 الأرشيف</a>
+        <a href="/search" class="utility-link">🔍 بحث</a>
+        <a href="/admin" class="utility-link">⚙️ الإدارة</a>
+      </div>
     </div>
   </div>
 
-  <!-- ═══ MASTHEAD ═══ -->
+  <!-- ═══ LAYER 2: MASTHEAD ═══ -->
   <header class="np-masthead">
     <div class="container">
-      <div class="logo-main">الصوت المحلي</div>
-      <div class="logo-sub">منصة جهوية للإعلام العام والتنمية المحلية</div>
-      <div class="logo-school">ولاية تيارت — الجزائر | الجمهورية الجزائرية الديمقراطية الشعبية</div>
-      <div class="date-line">
-        <span>📆 <span id="np-date-line"></span></span>
-        <span>🌐 إهتمام محلي ... إلتزام وطني</span>
+      <div class="masthead-inner">
+        <div class="masthead-logo-area">
+          <div class="logo-main">الصوت المحلي</div>
+          <div class="logo-tagline">إهتمام محلي ... إلتزام وطني</div>
+          <div class="logo-subtitle">منصة جهوية للإعلام العام والتنمية المحلية</div>
+        </div>
+        <div class="masthead-date-area">
+          <div class="masthead-date">📆 <span id="np-date-line"></span></div>
+          <div class="masthead-location">ولاية تيارت — الجزائر | الجمهورية الجزائرية الديمقراطية الشعبية</div>
+        </div>
       </div>
+      <div class="masthead-border"></div>
     </div>
   </header>
 
-  <!-- ═══ NAVIGATION ═══ -->
-  <div id="main-nav"></div>
+  <!-- ═══ LAYER 3: MAIN NAVIGATION ═══ -->
+  <div id="main-nav" class="np-nav"></div>
 
-  <!-- ═══ NEWS TICKER ═══ -->
+  <!-- ═══ BREAKING NEWS BAR ═══ -->
   <div id="news-ticker" style="display:none"></div>
 
+  <!-- ═══ BREADCRUMBS ═══ -->
+  <nav id="breadcrumbs" aria-label="Breadcrumb"></nav>
+
   <!-- ═══ MAIN CONTENT ═══ -->
-  <main class="container">
+  <main class="homepage-main">
 
-    <nav id="breadcrumbs" aria-label="Breadcrumb"></nav>
+    <!-- Section 2: Hero Zone -->
+    <section id="hp-hero" class="homepage-section hp-hero-section">
+      <div class="container">
+        <div id="np-hero-zone"></div>
+      </div>
+    </section>
 
-    <!-- Featured Story -->
-    <div id="np-featured"></div>
+    <!-- Section 3: Latest News Grid -->
+    <section id="hp-latest" class="homepage-section hp-latest-section">
+      <div class="container">
+        <h3 class="np-section-heading">
+          <span class="ornament">◆</span>
+          آخر الأخبار
+          <span class="badge">أحدث <span class="np-timestamp">—</span></span>
+        </h3>
+        <div id="np-latest-grid"></div>
+      </div>
+    </section>
 
-    <hr class="np-rule-double">
-
-    <!-- Stats Bar -->
-    <div id="np-stats" class="np-stats-bar"></div>
-
-    <hr class="np-rule-ornament">
-
-    <!-- Editorial Grid -->
-    <h3 class="np-section-heading">
-      <span class="ornament">◆</span>
-      آخر الأخبار
-      <span class="badge">آخر تحديث: <span class="np-timestamp">—</span></span>
-    </h3>
-    <div id="np-editorial-grid"></div>
-
-    <hr class="np-rule-ornament">
-
-    <!-- Ad Slot 1 -->
-    <div class="np-ad-slot np-ad-slot-full">
-      <div class="ad-label">— إعلان —</div>
-      <div class="ad-placeholder">هذه المساحة مخصصة للإعلان<br>للتواصل: هيئة التحرير</div>
+    <div class="container">
+      <hr class="np-rule-double">
     </div>
 
-    <hr class="np-rule-double">
+    <!-- Section 8: Ad Slot (hidden if empty) -->
+    <section id="hp-ad-1" class="homepage-section hp-ad-section" style="display:none">
+      <div class="container">
+        <div class="np-ad-slot np-ad-slot-full">
+          <div class="ad-label">— إعلان —</div>
+          <div id="np-ad-content-1" class="ad-content"></div>
+        </div>
+      </div>
+    </section>
 
-    <!-- Timeline Section -->
-    <h3 class="np-section-heading">
-      <span class="ornament">◆</span>
-      الأرشفة الزمنية
-      <span class="badge">أحدث الأحداث</span>
-    </h3>
-    <div id="np-timeline"></div>
+    <!-- Section 4: Regional News -->
+    <section id="hp-regional" class="homepage-section hp-regional-section">
+      <div class="container">
+        <h3 class="np-section-heading">
+          <span class="ornament">📍</span>
+          أخبار المنطقة
+          <span class="badge">أخبار بلديات تيارت</span>
+        </h3>
+        <div id="np-regional-grid"></div>
+      </div>
+    </section>
 
-    <hr class="np-rule-ornament">
-
-    <!-- Ad Slot 2 -->
-    <div class="np-ad-slot np-ad-slot-banner">
-      <div class="ad-label">— إعلان —</div>
-      <div class="ad-placeholder">مساحة إعلانية</div>
+    <div class="container">
+      <hr class="np-rule-double">
     </div>
+
+    <!-- Section 5: Most Read -->
+    <section id="hp-trending" class="homepage-section hp-trending-section">
+      <div class="container">
+        <h3 class="np-section-heading">
+          <span class="ornament">🔥</span>
+          الأكثر قراءة
+          <span class="badge">الأعلى مشاهدة</span>
+        </h3>
+        <div id="np-trending-grid"></div>
+      </div>
+    </section>
+
+    <div class="container">
+      <hr class="np-rule-double">
+    </div>
+
+    <!-- Section 6: Development + Section 7: Culture & Society (side by side) -->
+    <section id="hp-culture-society" class="homepage-section hp-culture-society-section">
+      <div class="container">
+        <div class="hp-two-col">
+          <div class="hp-col hp-col-dev">
+            <h3 class="np-section-heading">
+              <span class="ornament">🌱</span>
+              التنمية
+            </h3>
+            <div id="np-dev-grid"></div>
+          </div>
+          <div class="hp-col hp-col-culture">
+            <h3 class="np-section-heading">
+              <span class="ornament">🎭</span>
+              ثقافة
+            </h3>
+            <div id="np-culture-grid"></div>
+            <h3 class="np-section-heading" style="margin-top:25px;">
+              <span class="ornament">👥</span>
+              مجتمع
+            </h3>
+            <div id="np-society-grid"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+      <hr class="np-rule-double">
+    </div>
+
+    <!-- Section 8: Sports -->
+    <section id="hp-sports" class="homepage-section hp-sports-section">
+      <div class="container">
+        <h3 class="np-section-heading">
+          <span class="ornament">⚽</span>
+          رياضة
+        </h3>
+        <div id="np-sports-grid"></div>
+      </div>
+    </section>
+
+    <div class="container">
+      <hr class="np-rule-double">
+    </div>
+
+    <!-- Ad Slot 2 (hidden if empty) -->
+    <section id="hp-ad-2" class="homepage-section hp-ad-section" style="display:none">
+      <div class="container">
+        <div class="np-ad-slot np-ad-slot-banner">
+          <div class="ad-label">— إعلان —</div>
+          <div id="np-ad-content-2" class="ad-content"></div>
+        </div>
+      </div>
+    </section>
 
   </main>
 
   <!-- ═══ FOOTER ═══ -->
   <footer class="np-footer">
     <div class="container">
-      <div class="voice-line">🎙️ الصوت المحلي</div>
-      <h3>🎙️ الصوت المحلي</h3>
-      <p>إهتمام محلي ... إلتزام وطني | الجمهورية الجزائرية الديمقراطية الشعبية</p>
-      <p style="margin-top:10px;font-size:0.85rem;">🤖 هذا النظام يعمل بتقنيات الذكاء الاصطناعي | جميع المنشورات تمر عبر طبقة تحقق آلية</p>
-      <div class="powered">إدارة تقنية: Zoheir IT Solutions | نظام تطوعي غير رسمي</div>
+      <div class="footer-grid">
+        <div class="footer-col footer-brand">
+          <div class="footer-logo">🎙️ الصوت المحلي</div>
+          <p>إهتمام محلي ... إلتزام وطني</p>
+          <p class="footer-location">ولاية تيارت — الجزائر</p>
+        </div>
+        <div class="footer-col footer-links">
+          <h4>الأقسام</h4>
+          <div id="footer-nav-links"></div>
+        </div>
+        <div class="footer-col footer-info">
+          <h4>عن المنصة</h4>
+          <p>منصة جهوية للإعلام العام والتنمية المحلية بتقنيات الذكاء الاصطناعي</p>
+          <p class="footer-tech">🤖 جميع المنشورات تمر عبر طبقة تحقق آلية</p>
+          <p class="footer-powered">إدارة تقنية: Zoheir IT Solutions</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2026 الصوت المحلي — نظام تطوعي غير رسمي</p>
+      </div>
     </div>
   </footer>
 
   <script src="/js/api.js"></script>
   <script src="/js/newspaper.js"></script>
   <script src="/js/nav.js"></script>
+  <script>
+    // Set initial date
+    const now = new Date();
+    const dateEl = document.getElementById('np-date');
+    if (dateEl) dateEl.textContent = now.toLocaleDateString('ar-DZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const dateLineEl = document.getElementById('np-date-line');
+    if (dateLineEl) dateLineEl.textContent = now.toLocaleDateString('ar-DZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const issueEl = document.getElementById('np-issue');
+    if (issueEl) issueEl.textContent = now.getDate();
+  </script>
 </body>
 </html>

@@ -61,6 +61,7 @@ const API = {
   getCategories: () => API.get('/categories'),
   search: (q) => API.get(`/search?q=${encodeURIComponent(q)}`),
   getRecent: () => API.get('/recent'),
+  getHomepage: () => API.get('/homepage'),
   trackView: (id) => API.post(`/content/${id}/view`),
 
   // Admin API

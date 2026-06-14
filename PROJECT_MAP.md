@@ -92,6 +92,28 @@
 | `logs.html` | سجلات AI |
 | `settings.html` | إعدادات النظام |
 
+## HOMEPAGE REDESIGN (Phase 2C.1)
+```
+LAYER 1: UTILITY BAR        → date, weather, lang, quick links
+LAYER 2: MASTHEAD           → logo "الصوت المحلي" + taglines + date
+LAYER 3: STICKY NAV         → 11 items (config-driven, dropdowns)
+────────────────────────────────────────────
+1. BREAKING NEWS BAR        → red bar, latest event items
+2. HERO ZONE                → 1 featured (AI-selected) + 2 secondary
+3. LATEST GRID              → 6-12 cards, 3 columns
+4. REGIONAL NEWS            → 2 columns, regional-content
+5. MOST READ                → 2 columns, view-count sorted
+6. DEVELOPMENT              → vertical list
+7. CULTURE + SOCIETY        → 2-column layout
+8. SPORTS                   → 3 columns
+9. ADVERTISEMENTS           → auto-hidden if empty
+────────────────────────────────────────────
+AI SELECTION: HomepageSelector (modules/editorial/)
+  - Hero: 40% score + 30% priority + 20% confidence + 0.1% views
+  - Trending: by view_count
+  - Regional: by regional-news category
+```
+
 ## COMPLETED MILESTONES
 - [x] Express server + JSON DB
 - [x] AI pipeline: collector → analyzer → writer → publisher → archiver
@@ -128,6 +150,15 @@
   - Global search with filters
   - Enhanced section pages (featured/latest/most viewed)
   - Enhanced archive (year/month/category)
+- [x] **Phase 2C.1: Editorial Homepage Redesign**
+  - [x] `modules/editorial/homepage-selector.js` — AI content selection
+  - [x] `routes/api.js` — GET /api/homepage endpoint
+  - [x] `public/index.html` — 3-layer header + 9 editorial sections
+  - [x] `public/js/newspaper.js` — Dynamic homepage rendering
+  - [x] `public/css/newspaper.css` — ~400 lines new homepage styles
+  - [x] Stats bar removed, ad zones auto-hidden
+  - [x] SEO JSON-LD structured data
+  - [x] Lazy loading + auto-refresh
 - [x] **Phase 2C: Editorial Intelligence Layer**
   - [x] `modules/classifier.js` — 9-category editorial classifier with confidence scoring
   - [x] `modules/fact-validator.js` — Source reputation + cross-source + date validation
