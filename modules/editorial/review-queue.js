@@ -3,8 +3,7 @@ const db = require('../../database');
 const VALID_STATUSES = ['pending', 'approved', 'rejected', 'published'];
 
 class EditorialReviewQueue {
-  async add(contentData) {
-    // contentData: { source_id, raw_content_id, category, confidence_score, headline, summary, article, tags }
+  async add(contentData, tenantId) {
     const item = db.adapter.create('editorial_items', {
       source_id: contentData.source_id || null,
       raw_content_id: contentData.raw_content_id || null,
@@ -15,11 +14,11 @@ class EditorialReviewQueue {
       article: contentData.article || '',
       tags: Array.isArray(contentData.tags) ? contentData.tags.join(',') : (contentData.tags || ''),
       status: 'pending',
+      tenant_id: tenantId || 1,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     });
     
-    // Log to audit
     this._log(item.id, 'created', 'system', { category: item.category, confidence: item.confidence_score });
     
     return item;
@@ -72,36 +71,45 @@ class EditorialReviewQueue {
     return updated;
   }
 
-  getPending(limit = 20) {
+  getPending(limit = 20, tenantId) {
     try {
-      const items = db.adapter.where('editorial_items', { status: 'pending' }) || [];
-      return items.sort((a, b) => (b.confidence_score || 0) - (a.confidence_score || 0)).slice(0, limit);
+      const items = db.adapter.findAll('editorial_items') || [];
+      return items
+        .filter(i => i.status === 'pending' && (!tenantId || !i.tenant_id || i.tenant_id === tenantId))
+        .sort((a, b) => (b.confidence_score || 0) - (a.confidence_score || 0))
+        .slice(0, limit);
     } catch {
       return [];
     }
   }
 
-  getApproved(limit = 20) {
+  getApproved(limit = 20, tenantId) {
     try {
-      const items = db.adapter.where('editorial_items', { status: 'approved' }) || [];
-      return items.sort((a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0)).slice(0, limit);
+      const items = db.adapter.findAll('editorial_items') || [];
+      return items
+        .filter(i => i.status === 'approved' && (!tenantId || !i.tenant_id || i.tenant_id === tenantId))
+        .sort((a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0))
+        .slice(0, limit);
     } catch {
       return [];
     }
   }
 
-  getRejected(limit = 20) {
+  getRejected(limit = 20, tenantId) {
     try {
-      const items = db.adapter.where('editorial_items', { status: 'rejected' }) || [];
-      return items.sort((a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0)).slice(0, limit);
+      const items = db.adapter.findAll('editorial_items') || [];
+      return items
+        .filter(i => i.status === 'rejected' && (!tenantId || !i.tenant_id || i.tenant_id === tenantId))
+        .sort((a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0))
+        .slice(0, limit);
     } catch {
       return [];
     }
   }
 
-  getStats() {
+  getStats(tenantId) {
     try {
-      const all = db.adapter.findAll('editorial_items') || [];
+      const all = (db.adapter.findAll('editorial_items') || []).filter(i => !tenantId || !i.tenant_id || i.tenant_id === tenantId);
       return {
         pending: all.filter(i => i.status === 'pending').length,
         approved: all.filter(i => i.status === 'approved').length,

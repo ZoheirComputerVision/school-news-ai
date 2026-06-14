@@ -11,7 +11,8 @@ const tracker = new AdTracker();
 
 // GET all campaigns
 router.get('/campaigns', (req, res) => {
-  const campaigns = campaignMgr.getAll(parseInt(req.query.limit) || 50);
+  const tenantId = req.tenant ? req.tenant.id : 1;
+  const campaigns = campaignMgr.getAll(parseInt(req.query.limit) || 50, tenantId);
   res.json({ campaigns, total: campaigns.length });
 });
 
@@ -29,14 +30,17 @@ router.get('/zones', (req, res) => {
 
 // GET active ads for a zone
 router.get('/zone/:zoneId', (req, res) => {
-  const payload = inventory.getAdPayload(req.params.zoneId);
+  const tenantId = req.tenant ? req.tenant.id : 1;
+  const payload = inventory.getAdPayload(req.params.zoneId, tenantId);
   if (!payload) return res.json({ ad: null });
   res.json({ ad: payload });
 });
 
 // GET all advertisers
 router.get('/advertisers', (req, res) => {
-  const advertisers = db.adapter.findAll('advertisers') || [];
+  const tenantId = req.tenant ? req.tenant.id : 1;
+  const all = db.adapter.findAll('advertisers') || [];
+  const advertisers = all.filter(a => !tenantId || !a.tenant_id || a.tenant_id === tenantId);
   res.json({ advertisers, total: advertisers.length });
 });
 
@@ -45,10 +49,11 @@ router.post('/advertisers', (req, res) => {
   try {
     const { company_name, contact_name, email, phone, website, notes } = req.body;
     if (!company_name) return res.status(400).json({ error: 'اسم الشركة مطلوب' });
+    const tenantId = req.tenant ? req.tenant.id : 1;
     const advertiser = db.adapter.create('advertisers', {
       company_name, contact_name: contact_name || '', email: email || '',
       phone: phone || '', website: website || '', notes: notes || '',
-      created_at: new Date().toISOString(),
+      tenant_id: tenantId, created_at: new Date().toISOString(),
     });
     res.json({ success: true, advertiser });
   } catch (e) { res.status(400).json({ error: e.message }); }
@@ -57,7 +62,8 @@ router.post('/advertisers', (req, res) => {
 // POST create campaign
 router.post('/create', (req, res) => {
   try {
-    const campaign = campaignMgr.create(req.body);
+    const tenantId = req.tenant ? req.tenant.id : 1;
+    const campaign = campaignMgr.create({ ...req.body, tenant_id: tenantId });
     res.json({ success: true, campaign });
   } catch (e) { res.status(400).json({ error: e.message }); }
 });
@@ -96,7 +102,8 @@ router.delete('/delete/:id', (req, res) => {
 
 // GET stats
 router.get('/stats', (req, res) => {
-  const stats = campaignMgr.getStats();
+  const tenantId = req.tenant ? req.tenant.id : 1;
+  const stats = campaignMgr.getStats(tenantId);
   const daily = tracker.getDailyReport();
   const weekly = tracker.getWeeklyReport();
   const monthly = tracker.getMonthlyReport();

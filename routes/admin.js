@@ -45,7 +45,9 @@ router.get('/dashboard', (req, res) => res.json(archiveRepo.getStats()));
 
 router.get('/content', (req, res) => {
   const { status, category, limit = 50, offset = 0 } = req.query;
+  const tenantId = req.tenant ? req.tenant.id : 1;
   let items = articles.findAll();
+  items = items.filter(i => !i.tenant_id || i.tenant_id === tenantId);
   if (status) items = items.filter(i => i.status === status);
   if (category) items = items.filter(i => i.category === category);
   items.sort((a, b) => (b.created_at || '').localeCompare((a.created_at || '')));
@@ -126,7 +128,8 @@ router.post('/collect/manual', validateManualInput, async (req, res) => {
   try {
     const { title, body, category, source, event_date, image_data } = req.body;
     if (!title || !body) return res.status(400).json({ success: false, error: 'العنوان والمحتوى مطلوبان' });
-    const data = { title, body, source: source || 'إداري', category: category || 'uncategorized', event_date: event_date || new Date().toISOString().split('T')[0], source_url: '' };
+    const tenantId = req.tenant ? req.tenant.id : 1;
+    const data = { title, body, source: source || 'إداري', category: category || 'uncategorized', event_date: event_date || new Date().toISOString().split('T')[0], source_url: '', tenant_id: tenantId };
     if (image_data && typeof image_data === 'string' && image_data.startsWith('data:')) {
       const matches = image_data.match(/^data:([^;]+);base64,(.+)$/);
       if (matches) {

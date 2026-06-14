@@ -1,5 +1,64 @@
 # CHANGELOG.md — سجل التغييرات
 
+## [v3.0.0] — 2026-06-14 — Phase 3A: Multi-Tenant SaaS Foundation
+
+### Added
+- **New Layer: Multi-Tenant Architecture** — تحويل المنصة من نطاق جهوي واحد إلى بنية متعددة المنصات
+- **`modules/tenant/tenant-registry.js`** — سجل المنصات (CRUD, 6 منصات افتراضية, إحصائيات)
+- **`modules/tenant/config-manager.js`** — إعدادات لكل منصة (عنوان, شعار, وسائل تواصل, ألوان)
+- **`modules/tenant/migrate.js`** — تهيئة جداول المنصات + ترحيل البيانات الحالية إلى منصة تيارت
+- **`middleware/tenant.js`** — وسيط حل المنصة (من مسار URL أو header x-tenant-id) مع إعادة كتابة المسار
+- **`routes/tenants.js`** — 10 نقاط نهاية API لإدارة المنصات:
+  - `GET /api/tenants` — قائمة المنصات
+  - `GET /api/tenants/active` — المنصات النشطة
+  - `GET /api/tenants/stats` — إحصائيات المنصات
+  - `GET /api/tenants/:id` — منصة محددة
+  - `POST /api/tenants/create` — إنشاء منصة
+  - `PUT /api/tenants/update/:id` — تحديث منصة
+  - `POST /api/tenants/activate/:id` / `deactivate/:id` — تفعيل/إيقاف
+  - `GET /api/tenants/:id/config` / `PUT /:id/config` — إعدادات المنصة
+- **`admin/saas-control-center.html`** — لوحة تحكم SaaS (قائمة المنصات, إنشاء, تفعيل/إيقاف, إعدادات)
+
+### Changed
+- **`lib/dal/json-adapter.js`** — إضافة `tenants` و `tenant_config` إلى `init()`
+- **`server.js`** — إضافة middleware/tenant لكل الطلبات, تركيب مسارات المنصات, استدعاء `ensureTenantTables()` + `migrateExistingData()`
+- **`routes/api.js`** — فلترة المحتوى حسب `tenant_id` في جميع النقاط (content, section, archive-data, search, homepage, recent, latest-news)
+- **`routes/admin.js`** — فلترة المحتوى حسب `tenant_id` + إضافة `tenant_id` عند إنشاء محتوى يدوي
+- **`routes/editorial.js`** — تمرير `tenantId` إلى review queue و governance لفلترة العناصر حسب المنصة
+- **`routes/ads.js`** — فلترة الحملات والمعلنين حسب `tenant_id` + إضافة `tenant_id` عند الإنشاء
+- **`modules/editorial/review-queue.js`** — دعم `tenantId` في add(), getPending(), getApproved(), getRejected(), getStats()
+- **`modules/editorial/governance.js`** — دعم `tenantId` في getSummary(), getAllItems()
+- **`modules/editorial/homepage-selector.js`** — دعم `tenantId` في المُنشئ, فلترة كل الطرق
+- **`modules/ads/ad-inventory.js`** — دعم `tenantId` في getActiveAds(), getAdsForZone(), hasActiveAds(), getAdPayload()
+- **`modules/ads/campaign-manager.js`** — دعم `tenantId` في create(), getAll(), getActive(), getStats()
+- **`.gitignore`** — إضافة ملفات بيانات المنصات
+- **`ARCHITECTURE.md`** — إضافة طبقة المنصات, جدول النقاط, جدول المنصات الافتراضية, نموذج الأمان
+- **`ROADMAP.md`** — إعادة هيكلة Phase 5 ← Phase 3, إضافة Phase 3A
+- **`NEXT_SESSION.md`** — إضافة إنجازات Phase 3A
+
+### Migration
+- 6 منصات افتراضية تم إنشاؤها: تيارت, وهران, سطيف, الجزائر العاصمة, مستغانم, الشلف
+- 11 مقالة حالية تم ترحيلها إلى منصة تيارت
+- 0 حملات إعلانية حالية (جداول فارغة)
+- 0 معلنين حاليين
+
+### Tenant Isolation Architecture
+```
+URL: /tiaret/article/123
+  → middleware/tenant.js
+    → يكتشف tiaret في المسار
+    → يضبط req.tenant = { id: 1, slug: 'tiaret', name: 'تيارت', ... }
+    → يعيد كتابة المسار إلى /article/123
+    → route/api.js يفلتر حسب req.tenant.id
+
+API Call with x-tenant-id header:
+  → middleware/tenant.js
+    → يقرأ x-tenant-id: oran
+    → req.tenant = { id: 2, slug: 'oran', name: 'وهران', ... }
+
+Without tenant: ي default إلى tiaret
+```
+
 ## [v2.6.0] — 2026-06-14 — Phase 2D: Advertising & Revenue Layer
 
 ### Added

@@ -12,6 +12,7 @@ class CampaignManager {
 
     const campaign = db.adapter.create('campaigns', {
       advertiser_id: data.advertiser_id,
+      tenant_id: data.tenant_id || 1,
       title: data.title,
       description: data.description || '',
       start_date: data.start_date || new Date().toISOString().split('T')[0],
@@ -53,9 +54,10 @@ class CampaignManager {
 
   complete(id) { return this.update(id, { status: 'completed' }); }
 
-  getAll(limit = 50) {
+  getAll(limit = 50, tenantId) {
     try {
       return (db.adapter.findAll('campaigns') || [])
+        .filter(c => !tenantId || !c.tenant_id || c.tenant_id === tenantId)
         .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
         .slice(0, limit);
     } catch { return []; }
@@ -63,11 +65,12 @@ class CampaignManager {
 
   getById(id) { return db.adapter.getById('campaigns', id); }
 
-  getActive() {
+  getActive(tenantId) {
     try {
       const now = new Date();
       return (db.adapter.findAll('campaigns') || []).filter(c => {
         if (c.status !== 'active') return false;
+        if (tenantId && c.tenant_id && c.tenant_id !== tenantId) return false;
         const start = new Date(c.start_date);
         const end = new Date(c.end_date);
         return now >= start && now <= end;
@@ -75,9 +78,10 @@ class CampaignManager {
     } catch { return []; }
   }
 
-  getStats() {
+  getStats(tenantId) {
     try {
-      const campaigns = db.adapter.findAll('campaigns') || [];
+      const allCampaigns = db.adapter.findAll('campaigns') || [];
+      const campaigns = tenantId ? allCampaigns.filter(c => !c.tenant_id || c.tenant_id === tenantId) : allCampaigns;
       const total = campaigns.length;
       const active = campaigns.filter(c => c.status === 'active').length;
       const totalImpressions = campaigns.reduce((s, c) => s + (c.impressions || 0), 0);

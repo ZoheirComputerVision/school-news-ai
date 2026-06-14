@@ -11,6 +11,8 @@ data/editorial_*.json
 data/advertisers.json
 data/campaigns.json
 data/ad_events.json
+data/tenants.json
+data/tenant_config.json
 data/backups/
 public/uploads/
 server-test.log

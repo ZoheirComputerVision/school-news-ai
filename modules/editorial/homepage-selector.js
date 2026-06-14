@@ -2,8 +2,15 @@ const db = require('../../database');
 const { navItems } = require('../../config/navigation');
 
 class HomepageSelector {
+  constructor(tenantId) { this.tenantId = tenantId || 1; }
+
+  _filter(items) {
+    const tid = this.tenantId;
+    return items.filter(i => !i.tenant_id || i.tenant_id === tid);
+  }
+
   selectHero() {
-    const items = db.adapter.findAll('processed_content') || [];
+    const items = this._filter(db.adapter.findAll('processed_content') || []);
     const published = items.filter(i => i.status === 'published');
     if (!published.length) return null;
 
@@ -24,7 +31,7 @@ class HomepageSelector {
   }
 
   selectTrending(limit = 6) {
-    const items = db.adapter.findAll('processed_content') || [];
+    const items = this._filter(db.adapter.findAll('processed_content') || []);
     const published = items.filter(i => i.status === 'published');
     const viewCounts = {};
     (db.adapter.findAll('views') || []).forEach(v => {
@@ -38,7 +45,7 @@ class HomepageSelector {
   }
 
   selectRegional(limit = 4) {
-    const items = db.adapter.findAll('processed_content') || [];
+    const items = this._filter(db.adapter.findAll('processed_content') || []);
     const published = items.filter(i => i.status === 'published' && i.category === 'regional-news');
     return published
       .sort((a, b) => new Date(b.published_at || 0) - new Date(a.published_at || 0))
@@ -46,7 +53,7 @@ class HomepageSelector {
   }
 
   selectByCategory(category, limit = 6) {
-    const items = db.adapter.findAll('processed_content') || [];
+    const items = this._filter(db.adapter.findAll('processed_content') || []);
     const published = items.filter(i => i.status === 'published' && i.category === category);
     return published
       .sort((a, b) => new Date(b.published_at || 0) - new Date(a.published_at || 0))
@@ -54,7 +61,7 @@ class HomepageSelector {
   }
 
   selectLatest(limit = 12) {
-    const items = db.adapter.findAll('processed_content') || [];
+    const items = this._filter(db.adapter.findAll('processed_content') || []);
     const published = items.filter(i => i.status === 'published');
     return published
       .sort((a, b) => new Date(b.published_at || 0) - new Date(a.published_at || 0))
@@ -62,7 +69,7 @@ class HomepageSelector {
   }
 
   selectBreaking(limit = 5) {
-    const items = db.adapter.findAll('processed_content') || [];
+    const items = this._filter(db.adapter.findAll('processed_content') || []);
     const breaking = items.filter(i => i.status === 'published' && i.category === 'event');
     if (!breaking.length) {
       return items

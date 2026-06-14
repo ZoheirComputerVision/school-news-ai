@@ -77,16 +77,30 @@
 | 4 | [ ] LLM writer per section style | ⏳ |
 | 5 | [ ] Auto image selection + caption | ⏳ |
 
+## Phase 3: 🏢 Multi-Tenant SaaS Foundation (Phase 3A)
+
+| # | المهمة | الحالة |
+|---|--------|--------|
+| 1 | [✓] Tenant Registry (CRUD, 6 default tenants) | ✅ تم |
+| 2 | [✓] Tenant Configuration (per-tenant title, slogan, social, colors) | ✅ تم |
+| 3 | [✓] Tenant-aware URL routing (/:slug/article/:id) | ✅ تم |
+| 4 | [✓] Tenant content isolation (tenant_id on all tables) | ✅ تم |
+| 5 | [✓] Tenant-aware Editorial Intelligence (classifier, validator, writer, governance) | ✅ تم |
+| 6 | [✓] Tenant ad isolation (campaigns, advertisers scoped to tenant) | ✅ تم |
+| 7 | [✓] Data migration (existing content → tiaret tenant) | ✅ تم |
+| 8 | [✓] SaaS Control Center admin UI | ✅ تم |
+| 9 | [✓] Tenant API endpoints (10 endpoints) | ✅ تم |
+
 ## Phase 5: 🏢 SaaS Platform (الأيام 22-30)
 
 | # | المهمة | الحالة |
 |---|--------|--------|
-| 1 | [ ] Multi-tenancy (schools collection) | ⏳ |
-| 2 | [ ] User management (admin/editor/viewer) | ⏳ |
-| 3 | [ ] School onboarding flow | ⏳ |
+| 1 | [ ] Multi-tenant admin credentials (per-tenant JWT) | ⏳ |
+| 2 | [ ] Custom domain support | ⏳ |
+| 3 | [ ] Billing & subscriptions | ⏳ |
 | 4 | [ ] Analytics dashboard per school | ⏳ |
 | 5 | [ ] API marketplace | ⏳ |
-| 6 | [ ] Billing integration | ⏳ |
+| 6 | [ ] User management (admin/editor/viewer) | ⏳ |
 
 ## Phase 6: ✨ تحسينات واستدامة (الأيام 31+)
 

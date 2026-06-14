@@ -48,9 +48,22 @@
 - [x] **تتبع الأحداث**: Impression + click beacons
 - [x] **تقارير**: يومية/أسبوعية/شهرية مع أفضل الحملات
 
+## ✅ Phase 3A Complete — Multi-Tenant SaaS Foundation
+
+### المنجز:
+- [x] **`modules/tenant/tenant-registry.js`** — سجل المنصات (CRUD, 6 منصات, إحصائيات)
+- [x] **`modules/tenant/config-manager.js`** — إعدادات لكل منصة (عنوان, شعار, تواصل, ألوان)
+- [x] **`modules/tenant/migrate.js`** — تهيئة الجداول + ترحيل البيانات الحالية
+- [x] **`middleware/tenant.js`** — حل المنصة من URL أو header مع إعادة كتابة المسار
+- [x] **`routes/tenants.js`** — 10 نقاط نهاية API
+- [x] **`admin/saas-control-center.html`** — لوحة تحكم SaaS
+- [x] **عزل المحتوى**: tenant_id على جميع الجداول (articles, editorial, ads)
+- [x] **فلترة**: جميع نقاط API تفلتر حسب tenant_id
+- [x] **ترحيل**: 11 مقالة → منصة تيارت
+
 ---
 
-## المهمة التالية: Phase 3 — تحسينات متقدمة
+## المهمة التالية: Phase 3B — تحسينات متقدمة
 
 ### الأولوية: 🔴 عالية
 
@@ -61,10 +74,11 @@
 | `modules/writer.js` | LLM integration (GPT/Gemini) |
 | `modules/fact-validator.js` | التحقق الخارجي من الحقائق (APIs) |
 | `public/` | تحسينات SEO متقدمة: sitemap.xml |
+| `middleware/auth.js` | صلاحيات لكل منصة (per-tenant JWT) |
 | `config.js` | API keys للذكاء الاصطناعي |
 
 ### أولويات للجلسة القادمة:
-1. إضافة إعلانات الصفحات الداخلية (article-sidebar, article-inline, archive-page)
+1. **صلاحيات المنصات**: JWT لكل منصة (admin/tiaret, admin/oran, ...)
 2. تفعيل SQLite: إضافة `DB_TYPE=sqlite` إلى `.env`
 3. ربط Facebook Graph API الحقيقي: إضافة `FACEBOOK_ACCESS_TOKEN` إلى `.env`
 4. إنشاء sitemap.xml لتحسين SEO
@@ -73,6 +87,6 @@
 ### ملاحظات هامة:
 - **`DESIGN_GOVERNANCE.md`** — وثيقة ملزمة، لا تُغيّر الألوان/الخطوط/التخطيط
 - **Header الجديد** يحافظ على شعار "الصوت المحلي" كما هو — بدون تغيير
-- **الصفحة الرئيسية** تستخدم `GET /api/homepage` الآن — نقطة نهاية واحدة لكل البيانات
-- **المناطق الإعلانية** مخفية تلقائياً عند عدم وجود محتوى إعلاني
-- **مركز الإعلانات** متاح في `/admin/ads-center.html`
+- **المنصات** تدعم المسارات: `/tiaret/article/123`, `/oran/article/456`
+- **بدون مسار منصة**: يعمل كالمعتاد مع منصة تيارت الافتراضية
+- **مركز التحكم SaaS** متاح في `/admin/saas-control-center.html`

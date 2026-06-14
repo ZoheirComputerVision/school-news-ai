@@ -26,6 +26,25 @@
 │          Express Router: /api, /api/admin                  │
 │    Content CRUD, Search, Stats, Timeline, View Tracking    │
  ├──────────────────────────────────────────────────────────┤
+│                TENANT LAYER (PHASE 3A)                        │
+│  ┌──────────────────────────────────────────────────┐         │
+│  │  middleware/tenant.js — URL rewrite + tenant     │         │
+│  │  resolution from path slug or x-tenant-id header │         │
+│  └──────────────────────┬───────────────────────────┘         │
+│                         ▼                                     │
+│  ┌──────────────┐  ┌──────────────┐                           │
+│  │TenantRegistry│  │ConfigManager │                           │
+│  │(CRUD, seed,  │  │(per-tenant    │                           │
+│  │ stats)       │  │ title, slogan,│                           │
+│  └──────┬───────┘  │ social, color)│                           │
+│         │          └──────┬───────┘                           │
+│         └─────────────────┼───────────────────────────────────┘
+│                           ▼                                     │
+│  ┌──────────────────────────────────────────┐                 │
+│  │  tenants + tenant_config (JSON tables)   │                 │
+│  │  6 default tenants: tiaret, oran, setif, │                 │
+│  │  algiers, mostaganem, chlef              │                 │
+│  └──────────────────────────────────────────┘                 │
 │                   AD LAYER (PHASE 2D)                         │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────┐            │
 │  │ AdInventory  │  │ CampaignMgr  │  │ Tracker  │            │
@@ -174,9 +193,11 @@ Each pipeline step writes to ai_decision_log:
 | admin_actions | `data/admin_actions.json` | id, action, details |
 | settings | `data/settings.json` | key, value |
 | views | `data/views.json` | id, content_id, ip |
-| advertisers | `data/advertisers.json` | id, company_name, contact_name, email, phone |
-| campaigns | `data/campaigns.json` | id, advertiser_id, title, status, target_zone, impressions, clicks |
+| advertisers | `data/advertisers.json` | id, tenant_id, company_name, contact_name, email, phone |
+| campaigns | `data/campaigns.json` | id, tenant_id, advertiser_id, title, status, target_zone, impressions, clicks |
 | ad_events | `data/ad_events.json` | id, campaign_id, event_type, timestamp |
+| tenants | `data/tenants.json` | id, slug, name, region, status, created_at |
+| tenant_config | `data/tenant_config.json` | id, tenant_id, config_key, config_value |
 
 ## 5. Security Architecture
 
@@ -215,10 +236,24 @@ Each pipeline step writes to ai_decision_log:
 | Endpoint | Description |
 |----------|-------------|
 | `GET /api/nav` | Navigation tree (items + regional submenu) |
-| `GET /api/latest-news` | Latest 10 headlines for ticker |
-| `GET /api/section/:category` | Section data (featured, latest, mostViewed, meta) |
-| `GET /api/archive-data` | Archive grouped by year/month/category |
-| `GET /api/homepage` | Full homepage data (hero, breaking, latest, regional, trending, development, culture, society, sports) — AI-powered via HomepageSelector |
+| `GET /api/latest-news` | Latest 10 headlines for ticker (tenant-scoped) |
+| `GET /api/section/:category` | Section data (featured, latest, mostViewed, meta) — tenant-scoped |
+| `GET /api/archive-data` | Archive grouped by year/month/category — tenant-scoped |
+| `GET /api/homepage` | Full homepage data (tenant-scoped via HomepageSelector(tenantId)) |
+
+### Tenant Endpoints
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/tenants` | List all tenants |
+| `GET /api/tenants/active` | List active tenants |
+| `GET /api/tenants/stats` | Tenant statistics (total/active/inactive/by region) |
+| `GET /api/tenants/:id` | Get tenant by ID |
+| `POST /api/tenants/create` | Register new tenant |
+| `PUT /api/tenants/update/:id` | Update tenant |
+| `POST /api/tenants/activate/:id` | Activate tenant |
+| `POST /api/tenants/deactivate/:id` | Deactivate tenant |
+| `GET /api/tenants/:id/config` | Get tenant configuration |
+| `PUT /api/tenants/:id/config` | Update tenant configuration |
 
 ### Components
 - **Sticky Navigation** — 11-item main nav with dropdown support, mobile hamburger menu, sticky on scroll
@@ -234,7 +269,53 @@ Navigation is defined in `config/navigation.js`:
 - `categoryToSlug` — Maps 9 classifier categories to URL slugs
 - `slugToCategory` — Reverse mapping from slugs to classifier categories
 
-## 8. Key Limitations
+## 8. Multi-Tenant Architecture (Phase 3A)
+
+### Tenant Resolution
+- Middleware (`middleware/tenant.js`) runs before all routes
+- Extracts tenant slug from URL path prefix (e.g., `/oran/article/123`) or `x-tenant-id` header
+- Falls back to `tiaret` as default tenant
+- Rewrites URL by removing tenant slug prefix so existing routes work unchanged
+- Returns 503 if tenant is not active
+
+### Tenant Isolation
+| Layer | Isolation Method |
+|-------|-----------------|
+| Content (articles) | `tenant_id` field on `processed_content`; filtered in all API routes |
+| Editorial items | `tenant_id` on `editorial_items`; filtered in queue and governance |
+| Advertisers | `tenant_id` on `advertisers`; filtered in ad routes |
+| Campaigns | `tenant_id` on `campaigns`; filtered in campaign manager |
+| Archives | `tenant_id` on `archive` entries; filtered in search |
+| Ads (zones) | Ad inventory filters campaigns by tenant before serving ads |
+
+### Default Tenants
+| Slug | Name | Region |
+|------|------|--------|
+| `tiaret` | تيارت | ولاية تيارت |
+| `oran` | وهران | ولاية وهران |
+| `setif` | سطيف | ولاية سطيف |
+| `algiers` | الجزائر العاصمة | ولاية الجزائر |
+| `mostaganem` | مستغانم | ولاية مستغانم |
+| `chlef` | الشلف | ولاية الشلف |
+
+### URL Routing
+```js
+/tiaret/article/123   →  req.tenant = { slug: 'tiaret', ... }  → /article/123
+/oran/section/news    →  req.tenant = { slug: 'oran', ... }    → /section/news
+/article/123          →  req.tenant = { slug: 'tiaret', ... }  → (default)
+```
+
+### SaaS Admin
+- `GET /admin/saas-control-center` — Tenant management UI
+- Features: list tenants, create/deactivate/activate, per-tenant config editor (title, slogan, social, colors)
+
+### Security Model
+- Tenant isolation is enforced at the **route handler level**
+- Each route filters data by `req.tenant.id` before returning results
+- Multi-tenant admin still uses a single shared JWT (tenant-scoped admin credentials planned for future)
+- Data without `tenant_id` is treated as belonging to the default `tiaret` tenant
+
+## 9. Key Limitations
 
 - **JSON DB:** Not safe for concurrent writes — SQLite recommended for production (set `DB_TYPE=sqlite`)
 - **Demo Fallback:** Real sources available but Facebook requires `FACEBOOK_ACCESS_TOKEN` in `.env`

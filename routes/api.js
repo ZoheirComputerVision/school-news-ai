@@ -13,13 +13,16 @@ router.get('/status', (req, res) => {
 
 router.get('/content', (req, res) => {
   const { category, status, limit = 20, offset = 0, sort } = req.query;
-  const result = articles.findPublished({ category, limit: parseInt(limit), offset: parseInt(offset), sort });
+  const tenantId = req.tenant ? req.tenant.id : 1;
+  const result = articles.findPublished({ category, limit: 1000, offset: 0, sort });
+  const tenantItems = result.items.filter(i => !i.tenant_id || i.tenant_id === tenantId);
+  const sliced = tenantItems.slice(parseInt(offset), parseInt(offset) + parseInt(limit));
 
   const viewCounts = {};
   db.adapter.findAll('views').forEach(v => { viewCounts[v.content_id] = (viewCounts[v.content_id] || 0) + 1; });
-  const items = result.items.map(item => ({ ...item, view_count: viewCounts[item.id] || 0 }));
+  const items = sliced.map(item => ({ ...item, view_count: viewCounts[item.id] || 0 }));
 
-  res.json({ items, total: result.total, limit: parseInt(limit), offset: parseInt(offset) });
+  res.json({ items, total: tenantItems.length, limit: parseInt(limit), offset: parseInt(offset) });
 });
 
 router.get('/content/:id', (req, res) => {
@@ -49,8 +52,10 @@ router.get('/nav', (req, res) => {
 });
 
 router.get('/latest-news', (req, res) => {
-  const result = articles.findPublished({ sort: 'published_at', limit: 10 });
-  const items = result.items.map(item => ({
+  const tenantId = req.tenant ? req.tenant.id : 1;
+  const result = articles.findPublished({ sort: 'published_at', limit: 50 });
+  const tenantItems = result.items.filter(i => !i.tenant_id || i.tenant_id === tenantId).slice(0, 10);
+  const items = tenantItems.map(item => ({
     id: item.id,
     title: item.title,
     slug: item.slug || item.id,
@@ -58,11 +63,12 @@ router.get('/latest-news', (req, res) => {
     published_at: item.published_at,
     image_url: item.image_url || '',
   }));
-  res.json({ items, total: result.total });
+  res.json({ items, total: items.length });
 });
 
 router.get('/section/:category', (req, res) => {
   const { category } = req.params;
+  const tenantId = req.tenant ? req.tenant.id : 1;
   const navItem = navItems.find(n => n.path === `/section/${category}`);
   const classifierCategory = getCategoryForSlug(category);
 
@@ -76,19 +82,16 @@ router.get('/section/:category', (req, res) => {
   };
 
   if (classifierCategory) {
-    const featuredResult = articles.findPublished({ category: classifierCategory, sort: 'overall_score', limit: 1 });
-    response.featured = featuredResult.items[0] || null;
+    const allPublished = articles.find(c => c.status === 'published' && c.category === classifierCategory && (!c.tenant_id || c.tenant_id === tenantId));
+    response.featured = allPublished.sort((a, b) => (b.overall_score || 0) - (a.overall_score || 0))[0] || null;
+    response.latest = allPublished.sort((a, b) => (b.published_at || '').localeCompare(a.published_at || '')).slice(0, 10);
+    response.total = allPublished.length;
 
-    const latestResult = articles.findPublished({ category: classifierCategory, sort: 'published_at', limit: 10 });
-    response.latest = latestResult.items;
-    response.total = latestResult.total;
-
-    const allInCategory = articles.find(c => c.status === 'published' && c.category === classifierCategory);
     const viewCounts = {};
     db.adapter.findAll('views').forEach(v => {
       viewCounts[v.content_id] = (viewCounts[v.content_id] || 0) + 1;
     });
-    response.mostViewed = allInCategory
+    response.mostViewed = allPublished
       .map(item => ({ ...item, view_count: viewCounts[item.id] || 0 }))
       .sort((a, b) => b.view_count - a.view_count)
       .slice(0, 5);
@@ -98,7 +101,8 @@ router.get('/section/:category', (req, res) => {
 });
 
 router.get('/archive-data', (req, res) => {
-  const published = articles.find(c => c.status === 'published');
+  const tenantId = req.tenant ? req.tenant.id : 1;
+  const published = articles.find(c => c.status === 'published' && (!c.tenant_id || c.tenant_id === tenantId));
   const byYear = {};
   const byCategory = {};
 
@@ -142,21 +146,24 @@ router.get('/search', (req, res) => {
     (item.title || '').toLowerCase().includes(query) ||
     (item.body || '').toLowerCase().includes(query);
 
+  const tenantId = req.tenant ? req.tenant.id : 1;
+  const tenantFilter = (c) => !c.tenant_id || c.tenant_id === tenantId;
+
   if (!type || type === 'articles') {
     items = articles.find(c =>
-      c.status === 'published' && (matchText(c) || matchTag(c))
+      c.status === 'published' && tenantFilter(c) && (matchText(c) || matchTag(c))
     ).slice(0, 20);
   }
 
   if (type === 'tags') {
     items = articles.find(c =>
-      c.status === 'published' && matchTag(c)
+      c.status === 'published' && tenantFilter(c) && matchTag(c)
     ).slice(0, 20);
   }
 
   if (type === 'categories') {
     items = articles.find(c =>
-      c.status === 'published' && (c.category || '').toLowerCase().includes(query)
+      c.status === 'published' && tenantFilter(c) && (c.category || '').toLowerCase().includes(query)
     ).slice(0, 20);
   }
 
@@ -164,6 +171,7 @@ router.get('/search', (req, res) => {
     const archived = db.adapter.findAll('archive') || [];
     items = archived
       .filter(a => {
+        if (a.tenant_id && a.tenant_id !== tenantId) return false;
         const data = a.original_data ? (typeof a.original_data === 'string' ? JSON.parse(a.original_data) : a.original_data) : {};
         return (data.title || '').toLowerCase().includes(query) || (data.body || '').toLowerCase().includes(query);
       })
@@ -175,13 +183,15 @@ router.get('/search', (req, res) => {
 
 router.get('/homepage', (req, res) => {
   const HomepageSelector = require('../modules/editorial/homepage-selector');
-  const selector = new HomepageSelector();
+  const tenantId = req.tenant ? req.tenant.id : 1;
+  const selector = new HomepageSelector(tenantId);
   const data = selector.buildHomepage();
   res.json(data);
 });
 
 router.get('/recent', (req, res) => {
-  const items = articles.find(c => c.status === 'published')
+  const tenantId = req.tenant ? req.tenant.id : 1;
+  const items = articles.find(c => c.status === 'published' && (!c.tenant_id || c.tenant_id === tenantId))
     .sort((a, b) => (b.published_at || '').localeCompare((a.published_at || '')))
     .slice(0, 10);
   res.json(items);

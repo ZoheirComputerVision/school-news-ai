@@ -14,12 +14,13 @@ class AdInventory {
 
   getZone(zoneId) { return ZONES[zoneId] || null; }
 
-  getActiveAds() {
+  getActiveAds(tenantId) {
     try {
       const campaigns = db.adapter.findAll('campaigns') || [];
       const now = new Date();
       return campaigns.filter(c => {
         if (c.status !== 'active') return false;
+        if (tenantId && c.tenant_id && c.tenant_id !== tenantId) return false;
         const start = new Date(c.start_date);
         const end = new Date(c.end_date);
         return now >= start && now <= end;
@@ -27,17 +28,17 @@ class AdInventory {
     } catch { return []; }
   }
 
-  getAdsForZone(zoneId) {
-    const active = this.getActiveAds();
+  getAdsForZone(zoneId, tenantId) {
+    const active = this.getActiveAds(tenantId);
     return active.filter(a => a.target_zone === zoneId);
   }
 
-  hasActiveAds(zoneId) {
-    return this.getAdsForZone(zoneId).length > 0;
+  hasActiveAds(zoneId, tenantId) {
+    return this.getAdsForZone(zoneId, tenantId).length > 0;
   }
 
-  getAdPayload(zoneId) {
-    const ads = this.getAdsForZone(zoneId);
+  getAdPayload(zoneId, tenantId) {
+    const ads = this.getAdsForZone(zoneId, tenantId);
     if (!ads.length) return null;
     const ad = ads[Math.floor(Math.random() * ads.length)];
     const advertisers = db.adapter.findAll('advertisers') || [];

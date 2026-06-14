@@ -14,19 +14,22 @@ const aiWriter = new EditorialAIWriter();
 
 // GET pending items
 router.get('/pending', (req, res) => {
-  const items = queue.getPending(parseInt(req.query.limit) || 20);
+  const tenantId = req.tenant ? req.tenant.id : 1;
+  const items = queue.getPending(parseInt(req.query.limit) || 20, tenantId);
   res.json({ items, total: items.length, status: 'pending' });
 });
 
 // GET approved items
 router.get('/approved', (req, res) => {
-  const items = queue.getApproved(parseInt(req.query.limit) || 20);
+  const tenantId = req.tenant ? req.tenant.id : 1;
+  const items = queue.getApproved(parseInt(req.query.limit) || 20, tenantId);
   res.json({ items, total: items.length, status: 'approved' });
 });
 
 // GET rejected items
 router.get('/rejected', (req, res) => {
-  const items = queue.getRejected(parseInt(req.query.limit) || 20);
+  const tenantId = req.tenant ? req.tenant.id : 1;
+  const items = queue.getRejected(parseInt(req.query.limit) || 20, tenantId);
   res.json({ items, total: items.length, status: 'rejected' });
 });
 
@@ -52,13 +55,15 @@ router.post('/reject/:id', (req, res) => {
 
 // GET all editorial items (for governance center)
 router.get('/items', (req, res) => {
-  const items = governance.getAllItems(parseInt(req.query.limit) || 50);
+  const tenantId = req.tenant ? req.tenant.id : 1;
+  const items = governance.getAllItems(parseInt(req.query.limit) || 50, tenantId);
   res.json({ items, total: items.length });
 });
 
 // GET governance summary
 router.get('/governance/summary', (req, res) => {
-  const summary = governance.getSummary();
+  const tenantId = req.tenant ? req.tenant.id : 1;
+  const summary = governance.getSummary(tenantId);
   res.json(summary);
 });
 
@@ -93,6 +98,7 @@ router.post('/process/:rawDataId', async (req, res) => {
     const generated = aiWriter.generate(parsed, classification);
 
     // Step 4: Add to review queue
+    const tenantId = req.tenant ? req.tenant.id : 1;
     const item = await queue.add({
       source_id: rawData.source_id,
       raw_content_id: rawData.id,
@@ -102,7 +108,7 @@ router.post('/process/:rawDataId', async (req, res) => {
       summary: generated.summary,
       article: generated.article,
       tags: generated.tags,
-    });
+    }, tenantId);
 
     res.json({
       success: true,
@@ -136,6 +142,7 @@ router.post('/process-all', async (req, res) => {
         const validation = factValidator.validate(parsed);
         const generated = aiWriter.generate(parsed, classification);
 
+        const tenantId = req.tenant ? req.tenant.id : 1;
         const item = await queue.add({
           source_id: raw.source_id,
           raw_content_id: raw.id,
@@ -145,7 +152,7 @@ router.post('/process-all', async (req, res) => {
           summary: generated.summary,
           article: generated.article,
           tags: generated.tags,
-        });
+        }, tenantId);
 
         results.push({ raw_id: raw.id, item_id: item.id, status: 'processed' });
       } catch (e) {

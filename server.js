@@ -10,8 +10,11 @@ const scheduler = require('./modules/scheduler');
 const { apiLimiter, csrfProtection } = require('./middleware/validate');
 const editorialRoutes = require('./routes/editorial');
 const adRoutes = require('./routes/ads');
+const tenantRoutes = require('./routes/tenants');
+const { tenantMiddleware } = require('./middleware/tenant');
 const { ensureEditorialTables } = require('./modules/editorial/migrate');
 const { ensureAdTables } = require('./modules/ads/migrate');
+const { ensureTenantTables, migrateExistingData } = require('./modules/tenant/migrate');
 
 const app = express();
 
@@ -27,6 +30,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use('/api', apiLimiter);
 
+// Tenant middleware (resolves tenant from URL slug or header)
+app.use(tenantMiddleware);
+
 app.use(express.static(config.PUBLIC_DIR));
 app.use('/admin', express.static(config.ADMIN_DIR));
 
@@ -34,11 +40,16 @@ app.use('/api', apiRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/editorial', editorialRoutes);
 app.use('/api/ads', adRoutes);
+app.use('/api/tenants', tenantRoutes);
 
 app.get('/', (req, res) => res.sendFile(path.join(config.PUBLIC_DIR, 'index.html')));
 
 app.get('/admin', (req, res) => res.sendFile(path.join(config.ADMIN_DIR, 'index.html')));
-app.get('/admin/*', (req, res) => res.sendFile(path.join(config.ADMIN_DIR, req.params[0] || 'index.html')));
+app.get('/admin/*', (req, res) => {
+  const page = req.params[0] || 'index.html';
+  const filePath = path.join(config.ADMIN_DIR, page);
+  res.sendFile(filePath, err => { if (err) res.sendFile(path.join(config.ADMIN_DIR, 'index.html')); });
+});
 
 app.get('/section/:category', (req, res) => res.sendFile(path.join(config.PUBLIC_DIR, 'section.html')));
 app.get('/archive', (req, res) => res.sendFile(path.join(config.PUBLIC_DIR, 'archive.html')));
@@ -69,6 +80,8 @@ app.listen(config.PORT, async () => {
   await seed.seedIfEmpty();
   await ensureEditorialTables();
   await ensureAdTables();
+  await ensureTenantTables();
+  await migrateExistingData();
   scheduler.start();
 });
 

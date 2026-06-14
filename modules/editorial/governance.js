@@ -26,9 +26,10 @@ class EditorialGovernance {
     return { item, decisions: logs };
   }
 
-  getSummary() {
+  getSummary(tenantId) {
     try {
-      const items = db.adapter.findAll('editorial_items') || [];
+      const allItems = db.adapter.findAll('editorial_items') || [];
+      const items = tenantId ? allItems.filter(i => !i.tenant_id || i.tenant_id === tenantId) : allItems;
       const logs = db.adapter.findAll('editorial_audit') || [];
       
       const byCategory = {};
@@ -68,9 +69,10 @@ class EditorialGovernance {
     }
   }
 
-  getAllItems(limit = 50) {
+  getAllItems(limit = 50, tenantId) {
     try {
       return (db.adapter.findAll('editorial_items') || [])
+        .filter(i => !tenantId || !i.tenant_id || i.tenant_id === tenantId)
         .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
         .slice(0, limit);
     } catch {
