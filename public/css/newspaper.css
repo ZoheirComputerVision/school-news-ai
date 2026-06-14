@@ -1,39 +1,40 @@
-@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Kufi+Arabic:wght@400;500;600;700;800;900&family=Tajawal:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600;700;800;900&family=Tajawal:wght@300;400;500;700&display=swap');
 
 :root {
-  --np-black: #1a1a1a;
-  --np-black-soft: #2a2a2a;
+  --np-primary: #1a3a5c;
+  --np-primary-dark: #0f2440;
+  --np-primary-light: #2c5f8a;
   --np-gray-dark: #444;
   --np-gray: #666;
   --np-gray-light: #999;
   --np-gray-pale: #d4c9b8;
-  --np-paper: #f5f0e8;
+  --np-paper: #f4f1ea;
   --np-paper-light: #faf7f2;
   --np-white: #ffffff;
-  --np-crimson: #6B1D2A;
-  --np-crimson-dark: #4a131c;
-  --np-gold: #B8943C;
-  --np-gold-light: #d4b66a;
+  --np-accent: #c8a951;
+  --np-accent-light: #e8d48b;
+  --np-gold: #c8a951;
+  --np-gold-light: #e8d48b;
   --np-rule: #c4b8a4;
   --np-border: #d4c9b8;
-  --np-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  --np-shadow-lg: 0 4px 16px rgba(0,0,0,0.12);
-  --np-radius: 0;
+  --np-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  --np-shadow-lg: 0 4px 24px rgba(0,0,0,0.12);
+  --np-radius: 8px;
   --np-transition: all 0.3s ease;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {
-  font-family: 'Amiri', 'Noto Naskh Arabic', serif;
+  font-family: 'Tajawal', 'Noto Naskh Arabic', sans-serif;
   background: var(--np-paper);
-  color: var(--np-black);
+  color: var(--np-primary-dark);
   line-height: 1.9;
   direction: rtl;
   font-size: 1.05rem;
 }
-a { color: var(--np-black-soft); text-decoration: none; transition: var(--np-transition); }
-a:hover { color: var(--np-crimson); }
+a { color: var(--np-primary-light); text-decoration: none; transition: var(--np-transition); }
+a:hover { color: var(--np-accent); }
 
 .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
 
@@ -41,16 +42,16 @@ a:hover { color: var(--np-crimson); }
    TOP BAR
    ═══════════════════════════════════════ */
 .np-top-bar {
-  background: var(--np-black);
+  background: var(--np-primary-dark);
   color: var(--np-gray-light);
   font-size: 0.75rem;
   padding: 4px 0;
-  border-bottom: 2px solid var(--np-gold);
+  border-bottom: 2px solid var(--np-accent);
 }
 .np-top-bar .container {
   display: flex; justify-content: space-between; align-items: center;
 }
-.np-top-bar .date { color: var(--np-gold-light); font-weight: 700; letter-spacing: 0.5px; }
+.np-top-bar .date { color: var(--np-accent-light); font-weight: 700; letter-spacing: 0.5px; }
 .np-top-bar .edition { font-size: 0.7rem; }
 .np-top-bar .edition span { color: var(--np-white); font-weight: 700; }
 
@@ -60,7 +61,7 @@ a:hover { color: var(--np-crimson); }
 .np-masthead {
   background: var(--np-white);
   padding: 30px 0 15px;
-  border-bottom: 3px double var(--np-black);
+  border-bottom: 3px double var(--np-primary);
   text-align: center;
   position: relative;
 }
@@ -76,7 +77,7 @@ a:hover { color: var(--np-crimson); }
   font-family: 'Noto Kufi Arabic', sans-serif;
   font-size: 3.5rem;
   font-weight: 900;
-  color: var(--np-crimson);
+  color: var(--np-primary);
   letter-spacing: -2px;
   line-height: 1.1;
   text-shadow: 1px 1px 0 rgba(0,0,0,0.05);
@@ -89,7 +90,7 @@ a:hover { color: var(--np-crimson); }
   position: absolute;
   top: -8px;
   right: -20px;
-  color: var(--np-gold);
+  color: var(--np-accent);
   opacity: 0.5;
 }
 .np-masthead .logo-main::after {
@@ -98,7 +99,7 @@ a:hover { color: var(--np-crimson); }
   position: absolute;
   top: -8px;
   left: -20px;
-  color: var(--np-gold);
+  color: var(--np-accent);
   opacity: 0.5;
 }
 .np-masthead .logo-sub {
@@ -109,7 +110,7 @@ a:hover { color: var(--np-crimson); }
   letter-spacing: 1px;
 }
 .np-masthead .logo-school {
-  font-family: 'Amiri', serif;
+  font-family: 'Noto Naskh Arabic', serif;
   font-size: 0.85rem;
   color: var(--np-gray-dark);
   margin-top: 2px;
@@ -128,8 +129,8 @@ a:hover { color: var(--np-crimson); }
    NAVIGATION
    ═══════════════════════════════════════ */
 .np-nav {
-  background: var(--np-black);
-  border-bottom: 3px solid var(--np-gold);
+  background: var(--np-primary);
+  border-bottom: 3px solid var(--np-accent);
   position: sticky; top: 0; z-index: 100;
 }
 .np-nav .container {
@@ -152,7 +153,7 @@ a:hover { color: var(--np-crimson); }
 }
 .np-nav a:hover, .np-nav a.active {
   color: var(--np-white);
-  border-bottom-color: var(--np-gold);
+  border-bottom-color: var(--np-accent);
   background: rgba(255,255,255,0.05);
 }
 .np-nav .nav-left {
@@ -163,13 +164,13 @@ a:hover { color: var(--np-crimson); }
   font-size: 0.75rem;
   padding: 6px 12px;
   border: 1px solid var(--np-gray-dark);
-  border-radius: 0;
+  border-radius: var(--np-radius);
   margin: 6px 4px;
   color: var(--np-gray-light);
 }
 .np-nav .nav-left a:hover {
-  border-color: var(--np-gold);
-  color: var(--np-gold);
+  border-color: var(--np-accent);
+  color: var(--np-accent);
 }
 
 /* Nav Dropdown */
@@ -187,15 +188,15 @@ a:hover { color: var(--np-crimson); }
 }
 .np-nav-dropdown:hover .np-nav-dropdown-trigger {
   color: var(--np-white);
-  border-bottom-color: var(--np-gold);
+  border-bottom-color: var(--np-accent);
   background: rgba(255,255,255,0.05);
 }
 .np-nav-dropdown-menu {
   position: absolute; top: 100%; right: 0;
-  background: var(--np-black-soft);
+  background: var(--np-primary);
   min-width: 220px;
   border: 1px solid var(--np-gray-dark);
-  border-top: 2px solid var(--np-gold);
+  border-top: 2px solid var(--np-accent);
   opacity: 0; pointer-events: none;
   transition: var(--np-transition);
   z-index: 200;
@@ -211,7 +212,7 @@ a:hover { color: var(--np-crimson); }
 .np-nav-dropdown-menu a:last-child { border-bottom: none; }
 .np-nav-dropdown-menu a:hover {
   background: rgba(255,255,255,0.08);
-  color: var(--np-gold);
+  color: var(--np-accent);
   padding-right: 22px;
 }
 
@@ -235,7 +236,7 @@ a:hover { color: var(--np-crimson); }
   border: none;
   text-align: center;
   font-size: 1.2rem;
-  color: var(--np-gold);
+  color: var(--np-accent);
   letter-spacing: 8px;
   margin: 25px 0;
 }
@@ -245,7 +246,7 @@ a:hover { color: var(--np-crimson); }
 .np-rule-thick {
   border: none;
   height: 2px;
-  background: var(--np-black);
+  background: var(--np-primary);
   margin: 20px 0;
 }
 
@@ -256,16 +257,16 @@ a:hover { color: var(--np-crimson); }
   font-family: 'Noto Kufi Arabic', sans-serif;
   font-size: 1.3rem;
   font-weight: 700;
-  color: var(--np-crimson);
+  color: var(--np-primary);
   margin: 35px 0 20px;
   padding-bottom: 8px;
-  border-bottom: 2px solid var(--np-black);
+  border-bottom: 2px solid var(--np-primary);
   display: flex;
   align-items: center;
   gap: 12px;
 }
 .np-section-heading .ornament {
-  color: var(--np-gold);
+  color: var(--np-accent);
   font-size: 1rem;
 }
 .np-section-heading .badge {
@@ -279,7 +280,7 @@ a:hover { color: var(--np-crimson); }
   font-family: 'Noto Kufi Arabic', sans-serif;
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--np-black-soft);
+  color: var(--np-primary-dark);
   margin: 25px 0 15px;
   padding-bottom: 6px;
   border-bottom: 1px solid var(--np-rule);
@@ -290,8 +291,9 @@ a:hover { color: var(--np-crimson); }
    ═══════════════════════════════════════ */
 .np-featured {
   margin: 30px 0;
-  border: 2px solid var(--np-black);
+  border: 2px solid var(--np-primary);
   background: var(--np-white);
+  border-radius: var(--np-radius);
   position: relative;
 }
 .np-featured::before {
@@ -299,7 +301,7 @@ a:hover { color: var(--np-crimson); }
   position: absolute;
   top: -12px;
   right: 30px;
-  background: var(--np-crimson);
+  background: var(--np-primary);
   color: var(--np-white);
   font-family: 'Tajawal', sans-serif;
   font-size: 0.7rem;
@@ -338,7 +340,7 @@ a:hover { color: var(--np-crimson); }
   font-family: 'Tajawal', sans-serif;
   font-size: 0.7rem;
   font-weight: 700;
-  color: var(--np-crimson);
+  color: var(--np-primary);
   text-transform: uppercase;
   letter-spacing: 2px;
   margin-bottom: 10px;
@@ -349,7 +351,7 @@ a:hover { color: var(--np-crimson); }
   font-weight: 800;
   line-height: 1.4;
   margin-bottom: 12px;
-  color: var(--np-black);
+  color: var(--np-primary-dark);
 }
 .np-featured-content p {
   font-size: 1rem;
@@ -391,20 +393,22 @@ a:hover { color: var(--np-crimson); }
 .np-card {
   background: var(--np-white);
   border: 1px solid var(--np-border);
+  border-radius: var(--np-radius);
   transition: var(--np-transition);
   display: flex;
   flex-direction: column;
+  box-shadow: var(--np-shadow);
 }
 .np-card:hover {
-  border-color: var(--np-gray-dark);
-  box-shadow: var(--np-shadow);
+  border-color: var(--np-primary-light);
+  box-shadow: var(--np-shadow-lg);
 }
 .np-card-body { padding: 18px; flex: 1; display: flex; flex-direction: column; }
 .np-card .category-tag {
   font-family: 'Tajawal', sans-serif;
   font-size: 0.65rem;
   font-weight: 700;
-  color: var(--np-crimson);
+  color: var(--np-primary);
   text-transform: uppercase;
   letter-spacing: 1.5px;
   margin-bottom: 6px;
@@ -416,8 +420,8 @@ a:hover { color: var(--np-crimson); }
   line-height: 1.5;
   margin-bottom: 8px;
 }
-.np-card h3 a { color: var(--np-black); }
-.np-card h3 a:hover { color: var(--np-crimson); }
+.np-card h3 a { color: var(--np-primary-dark); }
+.np-card h3 a:hover { color: var(--np-primary); }
 .np-card p {
   font-size: 0.9rem;
   color: var(--np-gray-dark);
@@ -474,7 +478,7 @@ a:hover { color: var(--np-crimson); }
 
 /* Card with right border accent */
 .np-card-accent {
-  border-right: 3px solid var(--np-crimson);
+  border-right: 3px solid var(--np-primary);
 }
 
 /* ═══════════════════════════════════════
@@ -489,7 +493,7 @@ a:hover { color: var(--np-crimson); }
   position: absolute;
   right: 20px; top: 0; bottom: 0;
   width: 2px;
-  background: var(--np-black);
+  background: var(--np-primary);
 }
 .np-timeline-item {
   position: relative;
@@ -505,16 +509,17 @@ a:hover { color: var(--np-crimson); }
   right: 13px; top: 6px;
   width: 16px; height: 16px;
   background: var(--np-white);
-  border: 2px solid var(--np-black);
+  border: 2px solid var(--np-primary);
+  border-radius: 50%;
 }
 .np-timeline-item:hover::before {
-  background: var(--np-gold);
-  border-color: var(--np-gold);
+  background: var(--np-accent);
+  border-color: var(--np-accent);
 }
 .np-timeline-item .t-date {
   font-family: 'Tajawal', sans-serif;
   font-size: 0.75rem;
-  color: var(--np-crimson);
+  color: var(--np-primary);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -536,20 +541,20 @@ a:hover { color: var(--np-crimson); }
   font-family: 'Noto Kufi Arabic', sans-serif;
   font-size: 1.8rem;
   font-weight: 900;
-  color: var(--np-black);
+  color: var(--np-primary);
   margin-bottom: 15px;
   padding-bottom: 5px;
-  border-bottom: 3px double var(--np-black);
+  border-bottom: 3px double var(--np-primary);
   text-align: center;
 }
 .np-year-section .month-label {
   font-family: 'Tajawal', sans-serif;
   font-size: 1.1rem;
   font-weight: 700;
-  color: var(--np-crimson);
+  color: var(--np-primary);
   margin: 15px 0 10px;
   padding-right: 12px;
-  border-right: 3px solid var(--np-gold);
+  border-right: 3px solid var(--np-accent);
 }
 
 /* ═══════════════════════════════════════
@@ -564,7 +569,7 @@ a:hover { color: var(--np-crimson); }
   position: relative;
   transition: var(--np-transition);
 }
-.np-ad-slot:hover { border-color: var(--np-gold); }
+.np-ad-slot:hover { border-color: var(--np-accent); }
 .np-ad-slot .ad-label {
   font-family: 'Tajawal', sans-serif;
   font-size: 0.65rem;
@@ -575,7 +580,7 @@ a:hover { color: var(--np-crimson); }
   margin-bottom: 8px;
 }
 .np-ad-slot .ad-placeholder {
-  font-family: 'Amiri', serif;
+  font-family: 'Noto Naskh Arabic', serif;
   font-size: 1.2rem;
   color: var(--np-gray);
   padding: 30px;
@@ -600,8 +605,8 @@ a:hover { color: var(--np-crimson); }
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 1px;
   margin: 25px 0;
-  border: 1px solid var(--np-black);
-  background: var(--np-black);
+  border: 1px solid var(--np-primary);
+  background: var(--np-primary);
 }
 .np-stat-card {
   background: var(--np-white);
@@ -614,7 +619,7 @@ a:hover { color: var(--np-crimson); }
   font-family: 'Noto Kufi Arabic', sans-serif;
   font-size: 1.8rem;
   font-weight: 800;
-  color: var(--np-crimson);
+  color: var(--np-primary);
 }
 .np-stat-card .label {
   font-family: 'Tajawal', sans-serif;
@@ -636,10 +641,10 @@ a:hover { color: var(--np-crimson); }
   font-family: 'Noto Kufi Arabic', sans-serif;
   font-size: 0.95rem;
   font-weight: 700;
-  color: var(--np-crimson);
+  color: var(--np-primary);
   margin-bottom: 12px;
   padding-bottom: 6px;
-  border-bottom: 2px solid var(--np-black);
+  border-bottom: 2px solid var(--np-primary);
 }
 .np-sidebar ul { list-style: none; }
 .np-sidebar li {
@@ -658,13 +663,15 @@ a:hover { color: var(--np-crimson); }
   display: flex;
   gap: 0;
   margin: 20px 0;
-  border: 2px solid var(--np-black);
+  border: 2px solid var(--np-primary);
+  border-radius: var(--np-radius);
+  overflow: hidden;
 }
 .np-search-box input {
   flex: 1;
   padding: 10px 16px;
   border: none;
-  font-family: 'Amiri', serif;
+  font-family: 'Tajawal', sans-serif;
   font-size: 0.95rem;
   background: var(--np-white);
   direction: rtl;
@@ -673,7 +680,7 @@ a:hover { color: var(--np-crimson); }
 .np-search-box button {
   padding: 10px 20px;
   border: none;
-  background: var(--np-black);
+  background: var(--np-primary);
   color: var(--np-white);
   font-family: 'Tajawal', sans-serif;
   font-size: 0.85rem;
@@ -681,7 +688,7 @@ a:hover { color: var(--np-crimson); }
   cursor: pointer;
   transition: var(--np-transition);
 }
-.np-search-box button:hover { background: var(--np-crimson); }
+.np-search-box button:hover { background: var(--np-primary-dark); }
 
 /* ═══════════════════════════════════════
    BUTTONS
@@ -692,30 +699,31 @@ a:hover { color: var(--np-crimson); }
   font-family: 'Tajawal', sans-serif;
   font-size: 0.85rem;
   font-weight: 600;
-  border: 2px solid var(--np-black);
+  border: 2px solid var(--np-primary);
   cursor: pointer;
   transition: var(--np-transition);
   background: var(--np-white);
-  color: var(--np-black);
+  color: var(--np-primary);
+  border-radius: var(--np-radius);
 }
 .np-btn:hover {
-  background: var(--np-black);
+  background: var(--np-primary);
   color: var(--np-white);
 }
 .np-btn-sm { padding: 5px 14px; font-size: 0.78rem; }
-.np-btn-crimson {
-  border-color: var(--np-crimson);
-  color: var(--np-crimson);
+.np-btn-primary {
+  border-color: var(--np-primary);
+  color: var(--np-primary);
 }
-.np-btn-crimson:hover {
-  background: var(--np-crimson);
+.np-btn-primary:hover {
+  background: var(--np-primary);
   color: var(--np-white);
 }
 
 /* ═══════════════════════════════════════
    CATEGORY TAG VARIANTS
    ═══════════════════════════════════════ */
-.category-tag.news { color: var(--np-crimson); }
+.category-tag.news { color: var(--np-primary); }
 .category-tag.activity { color: #2d7d46; }
 .category-tag.announcement { color: #b8860b; }
 .category-tag.uncategorized { color: var(--np-gray); }
@@ -734,7 +742,7 @@ a:hover { color: var(--np-crimson); }
   font-family: 'Tajawal', sans-serif;
   font-size: 0.7rem;
   font-weight: 700;
-  color: var(--np-crimson);
+  color: var(--np-primary);
   text-transform: uppercase;
   letter-spacing: 2px;
   margin-bottom: 10px;
@@ -745,7 +753,7 @@ a:hover { color: var(--np-crimson); }
   font-weight: 800;
   line-height: 1.4;
   margin-bottom: 15px;
-  color: var(--np-black);
+  color: var(--np-primary-dark);
 }
 .np-article .article-meta {
   display: flex;
@@ -767,9 +775,10 @@ a:hover { color: var(--np-crimson); }
   border: 1px solid var(--np-border);
 }
 .np-article .article-body {
+  font-family: 'Noto Naskh Arabic', serif;
   font-size: 1.05rem;
   line-height: 2;
-  color: var(--np-black-soft);
+  color: var(--np-primary-dark);
 }
 .np-article .article-footer {
   margin-top: 30px;
@@ -786,14 +795,14 @@ a:hover { color: var(--np-crimson); }
   text-align: center;
   padding: 60px 20px;
   color: var(--np-gray);
-  font-family: 'Amiri', serif;
+  font-family: 'Tajawal', sans-serif;
   font-size: 1.1rem;
 }
 .np-loading::after {
   content: '\25E6';
   display: block;
   font-size: 2rem;
-  color: var(--np-gold);
+  color: var(--np-accent);
   animation: np-pulse 1.5s ease-in-out infinite;
   margin-top: 10px;
 }
@@ -806,11 +815,11 @@ a:hover { color: var(--np-crimson); }
    FOOTER
    ═══════════════════════════════════════ */
 .np-footer {
-  background: var(--np-black);
+  background: var(--np-primary-dark);
   color: var(--np-gray-light);
   padding: 35px 0;
   margin-top: 50px;
-  border-top: 4px solid var(--np-gold);
+  border-top: 4px solid var(--np-accent);
   text-align: center;
 }
 .np-footer .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
@@ -824,9 +833,9 @@ a:hover { color: var(--np-crimson); }
 .np-footer p { font-size: 0.85rem; }
 .np-footer .voice-line {
   margin-top: 15px;
-  font-family: 'Amiri', serif;
+  font-family: 'Tajawal', sans-serif;
   font-size: 1.2rem;
-  color: var(--np-gold);
+  color: var(--np-accent);
 }
 .np-footer .powered {
   margin-top: 8px;
@@ -839,19 +848,20 @@ a:hover { color: var(--np-crimson); }
    ═══════════════════════════════════════ */
 .np-category-header {
   background: var(--np-white);
-  border: 2px solid var(--np-black);
+  border: 2px solid var(--np-primary);
   padding: 25px 30px;
   margin: 25px 0;
   text-align: center;
+  border-radius: var(--np-radius);
 }
 .np-category-header h1 {
   font-family: 'Noto Kufi Arabic', sans-serif;
   font-size: 1.8rem;
   font-weight: 800;
-  color: var(--np-crimson);
+  color: var(--np-primary);
 }
 .np-category-header p {
-  font-family: 'Amiri', serif;
+  font-family: 'Tajawal', sans-serif;
   font-size: 1rem;
   color: var(--np-gray-dark);
   margin-top: 5px;

@@ -83,7 +83,7 @@ const NP = {
                 <span>\uD83D\uDCE1 ${item.source_name || '\u063A\u064A\u0631 \u0645\u062D\u062F\u062F'}</span>
                 ${item.overall_score ? `<span>\uD83C\uDFAF ${Math.round(item.overall_score * 100)}%</span>` : ''}
               </div>
-              <a href="/article/${item.id}" class="np-btn np-btn-sm np-btn-crimson" style="margin-top:15px;width:fit-content;">\u0627\u0642\u0631\u0623 \u0627\u0644\u0645\u0632\u064A\u062F</a>
+              <a href="/article/${item.id}" class="np-btn np-btn-sm np-btn-primary" style="margin-top:15px;width:fit-content;">\u0627\u0642\u0631\u0623 \u0627\u0644\u0645\u0632\u064A\u062F</a>
             </div>
           </div>
         </div>`;
