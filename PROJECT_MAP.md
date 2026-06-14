@@ -11,22 +11,22 @@
 | UUID | uuid | 9.0.0 |
 
 ## VERSION
-**Current:** v2.1.0  
+**Current:** v2.2.0  
 **Last updated:** 2026-06-14
 
 ## SYSTEM_FLOW
 ```
 [Boot] → server.js → mount routes → init modules → start cron
                           ↓
-                JSON DB ← collector (30min) → ScraperFactory
-                          ↓                         ├── Facebook Graph API
-                analyzer (15min) → classification   ├── RSS/Atom
-                          ↓        + fact-check     ├── Web Scraping
-                writer → AI article generation      └── Manual Entry
-                          ↓                (lib/scraper/ + modules/dedup.js
-                publisher (10min) → quality check    + modules/normalizer.js
-                          ↓         + scorer)       + modules/scorer.js
-                archiver (6hrs) → timeline + stats   + modules/monitor.js
+                JSON DB ← Source Registry (SQLite) ← collector (per-source)
+                          ↓           ↑              ├── Facebook Graph API
+                analyzer (15min) → classification    ├── RSS/Atom
+                          ↓        + fact-check      ├── Web Scraping
+                writer → AI article generation       └── Manual Entry
+                          ↓              (via Source Registry → ScraperFactory)
+                publisher (10min) → quality check
+                          ↓         + scorer + dedup + normalizer
+                archiver (6hrs) → timeline + stats
                           ↓
                 public/ ← static HTML + newspaper.css (navy+gold identity)
                 admin/  ← dashboard + review + logs + settings + collector monitor
@@ -111,6 +111,10 @@
 - [x] Collector monitoring dashboard (3 admin API endpoints)
 - [x] Visual reconciliation: navy+gold identity unified across all pages
 - [x] DESIGN_GOVERNANCE.md — design freeze document
+- [x] Source Registry (modules/source-registry.js) — centralized metadata in SQLite
+  - Fields: source_id, name, type, region, municipality, category, status, reliability_score, sync_frequency
+  - API: register, getActive, getByType, getByRegion, getByCategory, markSync, markError
+  - Collectors register through Source Registry only — no hardcoded sources
 
 ## ORPHANS & PENDING
 | البند | الحالة | الأولوية |

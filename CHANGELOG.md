@@ -1,5 +1,47 @@
 # CHANGELOG.md — سجل التغييرات
 
+## [2.3.0] — 2026-06-14 — Phase 2B: Source Registry & Complete Content Pipeline
+
+### Added
+- **`modules/source-registry.js`** — سجل مركزي لكل المصادر
+  - حقول موسعة: `source_id`, `region`, `municipality`, `category`, `status`, `reliability_score`, `sync_frequency`, `last_sync`
+  - دوال: `register()`, `getActive()`, `getByType()`, `getByRegion()`, `getByCategory()`, `markSync()`, `markError()`
+  - `getStats()` — إحصائيات حسب النوع والمنطقة والتصنيف
+  - `getReliabilityScores()` — ترتيب المصادر حسب الموثوقية
+  - `shouldSync()` — التحقق من وقت المزامنة حسب `sync_frequency`
+- **SQLite schema migration** — `_migrateSources()` تُضيف الأعمدة الجديدة دون فقدان البيانات
+- **Admin endpoints جديدة**:
+  - `GET /admin/sources/registry` — تصفية حسب type/region/category/status
+  - `POST /admin/sources/register` — تسجيل مصدر جديد
+  - `PUT /admin/sources/:id` — تحديث مصدر
+  - `DELETE /admin/sources/:id` — تعطيل مصدر
+  - `GET /admin/sources/types` — قائمة الأنواع والتصنيفات المتاحة
+
+### Changed
+- **`modules/collector.js`** — إعادة هيكلة كاملة لاستخدام Source Registry
+  - `collectAll()` يقرأ المصادر من `SourceRegistry.getActive()` فقط
+  - يستخدم `SourceRegistry.shouldSync(source)` للتحقق من وقت المزامنة
+  - يستخدم `SourceRegistry.markSync()` و `SourceRegistry.markError()` بعد كل عملية
+  - لا يوجد مصدر مبرمج بشكل ثابت (hardcoded)
+  - متوافق مع `collectFacebook()`, `collectMinistry()`, `collectManual()`
+- **`lib/dal/sqlite-adapter.js`** — تحديث `_createTables()` و `_seedDefaults()` لدعم الحقول الجديدة
+- **`routes/admin.js`** — تحسين نقاط النهاية:
+  - `GET /admin/sources` ← يستخدم SourceRegistry
+  - `GET /admin/collector/status` ← يشمل إحصائيات SourceRegistry + حجم المحتوى
+  - `GET /admin/sources/health` ← يشمل جميع حقول المصدر الموسعة
+- **`ARCHITECTURE.md`** — تحديث مخطط الطبقات وتدفق الجمع وجدول قاعدة البيانات
+- **`PROJECT_MAP.md`** — تحديث الإصدار v2.2.0، المخطط الانسيابي، الإنجازات
+- **`ROADMAP.md`** — إضافة المهمة 5 (Source Registry)
+
+### Pipeline (Complete)
+```
+Source Registry → ScraperFactory → ContentNormalizer → DedupEngine → Scorer → Storage
+       ↓                ↓                  ↓                ↓          ↓         ↓
+    SQLite         4 collectors      clean body +     hash/URL/    trust +    raw_data
+                   (FB, RSS,        summary +        title       freshness  → pending
+                    Web, Manual)     date + cat       similarity   + success
+```
+
 ## [2.2.0] — 2026-06-14 — Phase 2A.2: Design Governance Freeze
 
 ### Added

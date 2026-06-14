@@ -26,19 +26,25 @@
 │    Content CRUD, Search, Stats, Timeline, View Tracking    │
 ├──────────────────────────────────────────────────────────┤
 │                   AI PIPELINE                              │
-│  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐    │
-│  │Collector│→ │Analyzer │→ │ Writer  │→ │Publisher│    │
-│  │(30min)  │  │(15min)  │  │(on pub) │  │(10min)  │    │
-│  └─────────┘  └─────────┘  └─────────┘  └─────────┘    │
-│         ↓            ↓                           ↓        │
-│  ┌─────────┐  ┌─────────┐               ┌─────────┐      │
-│  │ Archiver│  │Scheduler│               │   DB    │      │
-│  │  (6hrs) │  │(cron)   │               │(JSON)   │      │
-│  └─────────┘  └─────────┘               └─────────┘      │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐ │
+│  │Collector │→ │ Analyzer │→ │  Writer  │→ │Publisher │ │
+│  │(per src) │  │ (15min)  │  │(on pub)  │  │ (10min)  │ │
+│  └────┬─────┘  └──────────┘  └──────────┘  └──────────┘ │
+│       ↓                                                     │
+│  ┌──────────┐                                              │
+│  │  Source  │  ← Collector Pipeline:                        │
+│  │ Registry │     ScraperFactory → Normalizer → Dedup      │
+│  │ (SQLite) │     → Scorer → Storage                        │
+│  └──────────┘                                              │
+│  ┌──────────┐  ┌──────────┐               ┌──────────┐      │
+│  │ Archiver │  │Scheduler │               │   DB    │      │
+│  │  (6hrs)  │  │(cron)    │               │(JSON)   │      │
+│  └──────────┘  └──────────┘               └──────────┘      │
 ├──────────────────────────────────────────────────────────┤
 │                     DATABASE LAYER                         │
-│     JSON files (9 tables) + SQLite (unused)               │
-│     Custom JsonDB class with in-memory cache (20s TTL)    │
+│     JSON files (9 tables) + SQLite (Schema v2 with         │
+│     Source Registry: region, municipality, category,        │
+│     reliability_score, sync_frequency, last_sync)          │
 └──────────────────────────────────────────────────────────┘
 ```
 
@@ -46,12 +52,21 @@
 
 ### 3.1 Collection Flow
 ```
-External Sources → Collector → raw_data (JSON) → pending status
-     ↓                  ↓
-  Facebook API      ScraperFactory → Fetcher → Normalizer → DedupEngine
-  RSS/Atom          (lib/scraper/)  (axios)    (modules/)   (modules/)
-  Web Scraping
-  Manual Entry
+Source Registry (SQLite) → Collector
+     ↓
+  For each active source:
+    1. ScraperFactory.create(source) → dispatches by type
+       ├── FacebookCollector → Graph API / demo fallback
+       ├── RssCollector      → RSS/Atom feed
+       └── WebsiteCollector  → HTTP + cheerio parse
+    2. ContentNormalizer.normalize(raw, source)
+       → cleaned body, summary, date, category inference
+    3. DedupEngine.isDuplicate({hash, url, title})
+       → skip if duplicate (hash/URL/similarity > 80%)
+    4. rawDataRepo.create({source_id, raw_text, content_hash, status:'pending'})
+    5. SourceScorer.updateSourceScore(source)
+    6. CollectorMonitor.logRun({status, items, duration})
+    7. SourceRegistry.markSync(source.id, success)
 ```
 
 ### 3.2 Analysis Flow
@@ -79,11 +94,30 @@ processed_content (draft/review) → Publisher
      └──→ Public pages + Archive
 ```
 
-## 4. Database Schema (JSON)
+## 4. Database Schema
 
+### 4.1 SQLite Schema (sources table — extended)
+| Column | Type | Description |
+|--------|------|-------------|
+| id | INTEGER PK | Auto-increment |
+| source_id | TEXT UNIQUE | Human-readable key (e.g. `fb-official`) |
+| name | TEXT | Source name |
+| url | TEXT | Source URL/feed URL |
+| type | TEXT | `facebook`, `rss`, `web`, `manual` |
+| region | TEXT | e.g. `تيارت`, `الجزائر` |
+| municipality | TEXT | e.g. `عين كرمس` |
+| category | TEXT | `social`, `official`, `news`, `education`, `internal` |
+| status | TEXT | `active`, `paused`, `error`, `disabled` |
+| reliability_score | REAL | 0.0 – 1.0 |
+| sync_frequency | INTEGER | Sync interval in minutes |
+| is_active | INTEGER | 1/0 |
+| trust_score | REAL | Legacy score |
+| last_scraped | TEXT | ISO timestamp |
+| last_sync | TEXT | ISO timestamp |
+
+### 4.2 Other Tables (JSON)
 | Table | File | Key Fields |
 |-------|------|------------|
-| sources | `data/sources.json` | id, name, url, type, is_active, trust_score |
 | raw_data | `data/raw_data.json` | id, source_id, raw_text, content_hash, status |
 | processed_content | `data/processed_content.json` | id, title, body, category, status, overall_score |
 | media | `data/media.json` | id, content_id, url, type |
@@ -117,12 +151,12 @@ processed_content (draft/review) → Publisher
 
 ## 7. Key Limitations
 
-- **JSON DB:** Not safe for concurrent writes (multiple cron jobs)
-- **Demo Fallback:** Real sources available but require credentials (FACEBOOK_ACCESS_TOKEN)
-- **Rule-based AI:** Not actual machine learning
+- **JSON DB:** Not safe for concurrent writes — SQLite recommended for production (set `DB_TYPE=sqlite`)
+- **Demo Fallback:** Real sources available but Facebook requires `FACEBOOK_ACCESS_TOKEN` in `.env`
+- **Rule-based AI:** Classification is keyword-based, not ML
 - **Single-tenant:** One school only
 - **No tests:** Zero test coverage
-- **Design Governance:** DESIGN_GOVERNANCE.md is mandatory reading for all future development
+- **Source Registry:** Full metadata in SQLite `sources` table with region, municipality, category, reliability scoring
 
 ## 8. Deployment
 

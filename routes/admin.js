@@ -7,6 +7,7 @@ const router = express.Router();
 const db = require('../database');
 const config = require('../config');
 const collector = require('../modules/collector');
+const SourceRegistry = require('../modules/source-registry');
 const analyzer = require('../modules/analyzer');
 const writer = require('../modules/writer');
 const publisher = require('../modules/publisher');
@@ -197,7 +198,43 @@ router.post('/archive/export', (req, res) => {
 
 router.get('/archive/timeline', (req, res) => res.json(archiveRepo.buildTimeline()));
 
-router.get('/sources', (req, res) => res.json(db.sources.findAll()));
+router.get('/sources', (req, res) => res.json(SourceRegistry.getAll()));
+
+router.get('/sources/registry', (req, res) => {
+  const { type, region, category, status } = req.query;
+  let sources = SourceRegistry.getAll();
+  if (type) sources = sources.filter(s => s.type === type);
+  if (region) sources = sources.filter(s => s.region === region);
+  if (category) sources = sources.filter(s => s.category === category);
+  if (status) sources = sources.filter(s => s.status === status);
+  res.json({ sources, stats: SourceRegistry.getStats() });
+});
+
+router.post('/sources/register', (req, res) => {
+  try {
+    const source = SourceRegistry.register(req.body);
+    res.json({ success: true, source });
+  } catch (e) { res.status(500).json({ success: false, error: e.message }); }
+});
+
+router.put('/sources/:id', (req, res) => {
+  try {
+    const source = SourceRegistry.update(parseInt(req.params.id), req.body);
+    if (!source) return res.status(404).json({ error: 'غير موجود' });
+    res.json({ success: true, source });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.delete('/sources/:id', (req, res) => {
+  try {
+    const result = SourceRegistry.remove(parseInt(req.params.id));
+    res.json({ success: result });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.get('/sources/types', (req, res) => {
+  res.json({ types: ['facebook', 'rss', 'web', 'manual'], categories: ['social', 'official', 'news', 'education', 'internal', 'general'] });
+});
 
 router.post('/scheduler/run-collector', async (req, res) => {
   try {
@@ -211,11 +248,27 @@ router.get('/collector/status', (req, res) => {
   try {
     const monitor = collector.getMonitor();
     const scorer = collector.getScorer();
+    const registry = SourceRegistry;
     const stats = monitor.getStats(7);
-    const sourcesSummary = monitor.getSourcesSummary();
+    const sourcesSummary = registry.getStats();
     const recentRuns = monitor.getRecentRuns(20);
     const topSources = scorer.getTopSources(5);
-    res.json({ stats, sourcesSummary, recentRuns, topSources });
+    const reliability = registry.getReliabilityScores();
+    const byType = registry.getActive().reduce((acc, s) => { acc[s.type] = (acc[s.type] || 0) + 1; return acc; }, {});
+    const totalContent = db.adapter.count('processed_content');
+    const recentContent = db.adapter.count('processed_content', c => {
+      const d = new Date(c.created_at || 0);
+      return (Date.now() - d.getTime()) < 7 * 86400000;
+    });
+    res.json({
+      stats,
+      sourcesSummary,
+      recentRuns,
+      topSources,
+      reliability,
+      activeByType: byType,
+      contentVolume: { total: totalContent, last7days: recentContent },
+    });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -232,20 +285,29 @@ router.get('/collector/logs', (req, res) => {
 router.get('/sources/health', (req, res) => {
   try {
     const scorer = collector.getScorer();
-    const allSources = db.sources.findAll();
+    const registry = SourceRegistry;
+    const allSources = registry.getAll();
     const health = allSources.map(s => {
       const score = scorer.computeScore(s);
       return {
         id: s.id,
+        source_id: s.source_id,
         name: s.name,
         type: s.type,
+        status: s.status,
+        region: s.region,
+        municipality: s.municipality,
+        category: s.category,
+        reliability_score: s.reliability_score,
+        sync_frequency: s.sync_frequency,
         is_active: !!s.is_active,
         url: s.url,
+        last_sync: s.last_sync || null,
         last_scraped: s.last_scraped || null,
         ...score,
       };
     });
-    res.json({ sources: health });
+    res.json({ sources: health, stats: registry.getStats() });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

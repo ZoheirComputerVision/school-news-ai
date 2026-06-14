@@ -31,7 +31,8 @@
 | 2 | [✓] Web scraper (cheerio/axios) + RSS parser | ✅ تم |
 | 3 | [✓] Multi-source deduplication (hash/URL/title) & trust scoring | ✅ تم |
 | 4 | [✓] Collector monitoring dashboard (status/logs/health) | ✅ تم |
-| 5 | [ ] Caching layer (Redis or LRU) | ⏳ |
+| 5 | [✓] Source Registry (centralized metadata + SQLite schema) | ✅ تم |
+| 6 | [ ] Caching layer (Redis or LRU) | ⏳ |
 
 ## Phase 3: ⚫ Neo Vintage Newspaper Design (الأيام 8-14)
 

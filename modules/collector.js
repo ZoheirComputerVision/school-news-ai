@@ -3,43 +3,30 @@ const { ContentNormalizer } = require('./normalizer');
 const { DedupEngine } = require('./dedup');
 const { SourceScorer } = require('./scorer');
 const { CollectorMonitor } = require('./monitor');
+const SourceRegistry = require('./source-registry');
 const { v4: uuidv4 } = require('uuid');
 const db = require('../database');
 
-const sourcesRepo = db.sources;
 const rawDataRepo = db.rawData;
 
 class DataCollector {
   constructor() {
-    this.lastFetch = {};
-    this.minInterval = 15 * 60 * 1000;
     this.dedup = new DedupEngine(db.adapter);
     this.scorer = new SourceScorer(db.adapter);
     this.monitor = new CollectorMonitor(db.adapter);
   }
 
-  _canFetch(key) {
-    const last = this.lastFetch[key];
-    if (!last) return true;
-    return (Date.now() - last) >= this.minInterval;
-  }
-
-  _markFetched(key) {
-    this.lastFetch[key] = Date.now();
-  }
-
   async collectAll() {
-    console.log('[Collector] بدء جمع البيانات...');
-    const allSources = sourcesRepo.findAll({ is_active: 1 });
+    console.log('[Collector] بدء جمع البيانات عبر Source Registry...');
+    const sources = SourceRegistry.getActive();
     const results = [];
     let totalDeduped = 0;
     let totalFailed = 0;
     const startTime = Date.now();
 
-    for (const source of allSources) {
-      const fetchKey = `${source.type}_${source.id}`;
-      if (!this._canFetch(fetchKey)) {
-        console.log(`[Collector] ${source.name}: تجاوز (فاصل زمني)`);
+    for (const source of sources) {
+      if (!SourceRegistry.shouldSync(source)) {
+        console.log(`[Collector] ${source.name}: تجاوز (لم يحن وقت المزامنة)`);
         continue;
       }
       try {
@@ -47,23 +34,23 @@ class DataCollector {
         results.push(...items.collected);
         totalDeduped += items.deduped;
         totalFailed += items.failed;
-        const sourceStart = Date.now();
-        const duration = Date.now() - sourceStart;
+        const ok = items.failed === 0 && (items.collected.length > 0 || items.deduped > 0);
+        SourceRegistry.markSync(source.id, ok);
+        this.scorer.updateSourceScore(source);
         this.monitor.logRun({
-          status: 'success',
+          status: ok ? 'success' : 'partial',
           sourceId: source.id,
           sourceName: source.name,
           sourceType: source.type,
           itemsCollected: items.collected.length,
           itemsDeduped: items.deduped,
           itemsFailed: items.failed,
-          duration,
+          duration: Date.now() - startTime,
         });
-        sourcesRepo.update(source.id, { last_scraped: new Date().toISOString() });
-        this.scorer.updateSourceScore(source);
       } catch (e) {
         console.error(`[Collector] ${source.name} error:`, e.message);
         totalFailed++;
+        SourceRegistry.markError(source.id, e.message);
         this.monitor.logRun({
           status: 'failed',
           sourceId: source.id,
@@ -73,7 +60,6 @@ class DataCollector {
           duration: Date.now() - startTime,
         });
       }
-      this._markFetched(fetchKey);
     }
 
     const totalDuration = Date.now() - startTime;
@@ -138,30 +124,36 @@ class DataCollector {
   }
 
   async collectFacebook() {
-    const source = sourcesRepo.findOne(s => s.type === 'facebook');
-    if (!source) return [];
-    if (!this._canFetch('facebook')) return [];
-    const result = await this._collectFromSource(source);
-    this._markFetched('facebook');
-    return result.collected;
+    const sources = SourceRegistry.getByType('facebook');
+    const results = [];
+    for (const s of sources) {
+      if (!SourceRegistry.shouldSync(s)) continue;
+      const r = await this._collectFromSource(s);
+      SourceRegistry.markSync(s.id, r.failed === 0);
+      results.push(...r.collected);
+    }
+    return results;
   }
 
   async collectMinistry() {
-    const source = sourcesRepo.findOne(s => s.type === 'web');
-    if (!source) return [];
-    if (!this._canFetch('ministry')) return [];
-    const result = await this._collectFromSource(source);
-    this._markFetched('ministry');
-    return result.collected;
+    const sources = SourceRegistry.getByCategory('official');
+    const results = [];
+    for (const s of sources) {
+      if (!SourceRegistry.shouldSync(s)) continue;
+      const r = await this._collectFromSource(s);
+      SourceRegistry.markSync(s.id, r.failed === 0);
+      results.push(...r.collected);
+    }
+    return results;
   }
 
   async collectManual(data) {
-    const source = sourcesRepo.findOne(s => s.type === 'manual');
+    const source = SourceRegistry.getByType('manual')[0];
     const normalized = ContentNormalizer.normalize(data, source);
     const rawText = JSON.stringify(normalized || data);
     const hash = uuidv4().replace(/-/g, '').slice(0, 16);
     const record = rawDataRepo.create({
-      source_id: source?.id || 3,
+      source_id: source?.id || 1,
       raw_text: rawText,
       content_hash: hash,
       status: 'pending',
@@ -170,8 +162,8 @@ class DataCollector {
   }
 
   getMonitor() { return this.monitor; }
-
   getScorer() { return this.scorer; }
+  getRegistry() { return SourceRegistry; }
 }
 
 module.exports = new DataCollector();
