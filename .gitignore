@@ -16,6 +16,11 @@ data/tenant_config.json
 data/tenant_settings.json
 data/tenant_users.json
 data/tenant_pages.json
+data/plans.json
+data/subscriptions.json
+data/invoices.json
+data/usage_metrics.json
+data/payment_events.json
 data/backups/
 public/uploads/
 server-test.log

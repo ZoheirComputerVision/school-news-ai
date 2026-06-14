@@ -75,6 +75,20 @@
 - [x] **جداول جديدة**: tenant_settings, tenant_users, tenant_pages
 - [x] **صلاحيات**: per-tenant JWT with role-based access (super_admin, tenant_admin, editor, reviewer)
 
+## ✅ Phase 3C Complete — Billing & Subscription Platform
+
+### المنجز:
+- [x] **`modules/billing/plan-manager.js`** — 3 plans (Starter, Professional, Enterprise) with limits
+- [x] **`modules/billing/subscription-manager.js`** — trial→active→suspended→expired→cancelled
+- [x] **`modules/billing/invoice-manager.js`** — auto invoice numbers, revenue (MRR/ARR)
+- [x] **`modules/billing/usage-tracker.js`** — articles, editors, API, storage + limit checking
+- [x] **`modules/billing/migrate.js`** — table verification + plan seeding + trial subscriptions
+- [x] **`routes/billing.js`** — 18 endpoints under `/api/billing/`
+- [x] **`admin/billing-center.html`** — 5 tabs (Plans, Subscriptions, Invoices, Revenue, Usage)
+- [x] **`admin/tenant-billing.html`** — plan info, usage bars, invoice history
+- [x] **5 جداول جديدة**: plans, subscriptions, invoices, usage_metrics, payment_events
+- [x] **نظام تجربة 14 يوم**: اشتراك تجريبي تلقائي لجميع المنصات الجديدة
+
 ---
 
 ## المهمة التالية: Phase 4 — تحسينات متقدمة
@@ -89,6 +103,7 @@
 | `modules/fact-validator.js` | التحقق الخارجي من الحقائق (APIs) |
 | `public/` | تحسينات SEO متقدمة: sitemap.xml |
 | `config.js` | API keys للذكاء الاصطناعي |
+| | Payment gateway integration (Stripe/PayPal) |
 | | Custom domain support per tenant |
 
 ### أولويات للجلسة القادمة:
@@ -97,12 +112,15 @@
 3. **Fact Validator خارجي**: التحقق من الحقائق عبر APIs
 4. إنشاء sitemap.xml لتحسين SEO
 5. تحسين أداء HomepageSelector مع caching
-6. **نطاقات مخصصة**: دعم نطاق لكل منصة (tiaret.soutmahali.dz, oran.soutmahali.dz)
+6. **نطاقات مخصصة**: دعم نطاق لكل منصة
+7. **دمج بوابة الدفع**: Stripe/PayPal للفوترة الحقيقية
 
 ### ملاحظات هامة:
 - **`DESIGN_GOVERNANCE.md`** — وثيقة ملزمة، لا تُغيّر الألوان/الخطوط/التخطيط
 - **المنصات** تدعم المسارات: `/tiaret/article/123`, `/oran/article/456`
 - **بدون مسار منصة**: يعمل كالمعتاد مع منصة تيارت الافتراضية
 - **مركز التحكم SaaS** متاح في `/admin/saas-control-center.html`
+- **مركز الفوترة**: `/admin/billing-center.html` (للمشرف العام)
+- **فوترة المنصة**: `/admin/tenant-billing.html` (لمدير المنصة)
+- **API الفوترة**: `/api/billing/*` (جميع نقاط الفوترة)
 - **تسجيل الدخول للمنصات**: POST `/api/tenant/auth` مع `{ tenant_id, username, password }`
-- **API العامة للصفحات**: GET `/api/tenant/public/:slug/pages/:type`

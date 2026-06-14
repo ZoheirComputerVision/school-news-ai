@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الفوترة | المنصة</title>
+<link rel="stylesheet" href="admin.css">
+<style>
+:root { --primary: #1a3a5c; --primary-dark: #0f2440; --accent: #c8a951; --accent-light: #e8d48b; --danger: #c0392b; --success: #27ae60; --warning: #f39c12; --info: #2980b9; --gray: #666; --gray-light: #999; --border: #d4c9b8; --bg: #f4f1ea; --white: #fff; --radius: 8px; --shadow: 0 2px 12px rgba(0,0,0,0.08); }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:Tajawal, sans-serif; background:var(--bg); color:var(--primary-dark); direction:rtl; }
+.container { max-width:1100px; margin:0 auto; padding:20px; }
+.header { background:var(--primary); color:var(--white); padding:15px 20px; display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid var(--accent); }
+.header h1 { font-size:1.3rem; }
+.header .back-link { color:var(--accent-light); text-decoration:none; font-size:0.85rem; }
+.cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:15px; margin:20px 0; }
+.card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow); }
+.card .num { font-size:1.8rem; font-weight:800; color:var(--primary); }
+.card .label { font-size:0.78rem; color:var(--gray); margin-top:3px; }
+.card .sub { font-size:0.72rem; color:var(--gray-light); margin-top:2px; }
+table { width:100%; border-collapse:collapse; font-size:0.85rem; }
+th { background:var(--primary); color:var(--white); padding:10px 12px; text-align:right; font-weight:600; }
+td { padding:10px 12px; border-bottom:1px solid var(--border); }
+tr:hover td { background:var(--bg); }
+.badge { display:inline-block; padding:2px 10px; border-radius:12px; font-size:0.72rem; font-weight:700; }
+.badge.trial { background:#d5f5e3; color:#1a7a3c; }
+.badge.active { background:#d5f5e3; color:var(--success); }
+.badge.suspended { background:#fdebd0; color:var(--warning); }
+.badge.expired { background:#fadbd8; color:var(--danger); }
+.badge.cancelled { background:#e8e8e8; color:var(--gray); }
+.badge.paid { background:#d5f5e3; color:var(--success); }
+.badge.pending { background:#fdebd0; color:var(--warning); }
+.badge.overdue { background:#fadbd8; color:var(--danger); }
+.badge.within { background:#d5f5e3; color:var(--success); }
+.badge.exceeded { background:#fadbd8; color:var(--danger); }
+.section-title { font-size:1rem; color:var(--primary); border-bottom:2px solid var(--primary); padding-bottom:6px; margin:20px 0 10px; }
+.progress-bar { height:8px; border-radius:4px; background:var(--bg); overflow:hidden; margin:6px 0; }
+.progress-fill { height:100%; border-radius:4px; background:var(--success); transition:width 0.5s; }
+.progress-fill.warning { background:var(--warning); }
+.progress-fill.danger { background:var(--danger); }
+.text-muted { color:var(--gray-light); font-size:0.78rem; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>💰 الفوترة — <span id="tenant-name">المنصة</span></h1>
+  <div><a href="/admin" class="back-link">← العودة</a></div>
+</div>
+<div class="container">
+
+  <!-- Subscription Summary -->
+  <div class="cards" id="sub-summary">
+    <div class="card"><div class="num" id="s-plan">—</div><div class="label">الخطة الحالية</div></div>
+    <div class="card"><div class="num" id="s-status">—</div><div class="label">الحالة</div></div>
+    <div class="card"><div class="num" id="s-renewal">—</div><div class="label">تاريخ التجديد</div></div>
+  </div>
+
+  <!-- Usage -->
+  <h3 class="section-title">📈 استخدام المنصة</h3>
+  <div id="usage-section">
+    <div class="card" id="usage-cards"></div>
+  </div>
+
+  <!-- Invoices -->
+  <h3 class="section-title">🧾 الفواتير</h3>
+  <table><thead>
+    <tr><th>رقم الفاتورة</th><th>الفترة</th><th>المبلغ</th><th>الحالة</th><th>تاريخ الدفع</th></tr>
+  </thead><tbody id="inv-tbody"></tbody></table>
+
+  <!-- Limits -->
+  <h3 class="section-title">⚙️ حدود الخطة</h3>
+  <div id="limits-section"></div>
+</div>
+
+<script>
+let tenantId = null;
+
+async function init() {
+  const token = localStorage.getItem('token');
+  if (!token) { document.body.innerHTML = '<div style="padding:50px;text-align:center;">يرجى تسجيل الدخول</div>'; return; }
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    tenantId = payload.tenant_id;
+    if (!tenantId) { document.body.innerHTML = '<div style="padding:50px;text-align:center;">ليس لديك صلاحية الوصول</div>'; return; }
+    document.getElementById('tenant-name').textContent = 'منصة #' + tenantId;
+    await loadData();
+  } catch { document.body.innerHTML = '<div style="padding:50px;text-align:center;">رمز الدخول غير صالح</div>'; }
+}
+
+function api(path, opts = {}) {
+  const headers = { 'Content-Type': 'application/json', ...opts.headers };
+  const token = localStorage.getItem('token');
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  return fetch('/api/billing' + path, { headers, ...opts }).then(async res => {
+    if (!res.ok) { let msg; try { const e = await res.json(); msg = e.error; } catch { msg = res.statusText; } throw new Error(msg); }
+    return res.json();
+  });
+}
+
+async function loadData() {
+  await loadSubscription();
+  await loadUsage();
+  await loadInvoices();
+}
+
+async function loadSubscription() {
+  try {
+    const data = await api('/subscription/tenant/' + tenantId);
+    const sub = data.subscription || {};
+    const plan = data.plan || {};
+    document.getElementById('s-plan').textContent = plan.name || '—';
+    const statusNames = { trial: 'تجربة مجانية', active: 'نشط', suspended: 'موقوف', expired: 'منتهي', cancelled: 'ملغي' };
+    document.getElementById('s-status').innerHTML = `<span class="badge ${sub.status || ''}">${statusNames[sub.status] || sub.status || '—'}</span>`;
+    document.getElementById('s-renewal').textContent = sub.current_period_end ? new Date(sub.current_period_end).toLocaleDateString('ar-DZ') : '—';
+  } catch (e) { console.error('Sub error:', e); }
+}
+
+async function loadUsage() {
+  try {
+    const data = await api('/usage/tenant/' + tenantId);
+    const usage = data.usage || {};
+    const limits = data.limits_check ? data.limits_check.usage : {};
+    const violations = data.limits_check ? data.limits_check.violations : [];
+    const withinLimits = data.limits_check ? data.limits_check.within_limits : true;
+
+    document.getElementById('usage-cards').innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;">
+        <div><div class="num" style="font-size:1.4rem;">${usage.articles_count || 0}</div><div class="label">المقالات</div></div>
+        <div><div class="num" style="font-size:1.4rem;">${usage.editors_count || 0}</div><div class="label">المحررون</div></div>
+        <div><div class="num" style="font-size:1.4rem;">${usage.api_requests || 0}</div><div class="label">طلبات API</div></div>
+        <div><div class="num" style="font-size:1.4rem;">${Math.round((usage.storage_bytes || 0) / (1024*1024))} MB</div><div class="label">المساحة</div></div>
+      </div>
+      <div style="margin-top:8px;"><span class="badge ${withinLimits ? 'within' : 'exceeded'}">${withinLimits ? '✅ ضمن الحدود المسموحة' : '⚠️ تجاوز الحد المسموح'}</span></div>
+    `;
+
+    // Limits display
+    const limitsSection = document.getElementById('limits-section');
+    if (data.limits_check && data.limits_check.usage) {
+      const planData = await api('/plans');
+      const plans = planData.plans || [];
+      const currentPlan = plans.find(p => p.name === document.getElementById('s-plan').textContent);
+      const lim = currentPlan ? currentPlan.limits : {};
+      const usageVals = data.limits_check.usage;
+      const items = [
+        { label: 'المقالات', current: usageVals.articles_count, max: lim.articles_per_month, unit: '' },
+        { label: 'المحررون', current: usageVals.editors_count, max: lim.editors, unit: '' },
+        { label: 'المساحة', current: Math.round((usageVals.storage_bytes || 0) / (1024*1024)), max: lim.storage_mb, unit: ' MB' },
+        { label: 'طلبات API/يوم', current: usageVals.api_requests, max: lim.api_calls_per_day, unit: '' },
+      ];
+      limitsSection.innerHTML = items.filter(i => i.max).map(i => {
+        const pct = Math.min(100, Math.round((i.current / i.max) * 100));
+        const cls = pct > 90 ? 'danger' : pct > 70 ? 'warning' : '';
+        return `<div style="margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;font-size:0.82rem;">
+            <span>${i.label}</span>
+            <span>${i.current}${i.unit} / ${i.max}${i.unit}</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill ${cls}" style="width:${pct}%;"></div></div>
+        </div>`;
+      }).join('');
+    } else {
+      limitsSection.innerHTML = '<p class="text-muted">لا توجد بيانات حدود</p>';
+    }
+  } catch (e) { console.error('Usage error:', e); }
+}
+
+async function loadInvoices() {
+  try {
+    const data = await api('/invoices/tenant/' + tenantId);
+    const invoices = data.invoices || [];
+    const tbody = document.getElementById('inv-tbody');
+    tbody.innerHTML = invoices.length ? invoices.map(i => `
+      <tr>
+        <td style="direction:ltr;font-size:0.75rem;">${i.invoice_number || '—'}</td>
+        <td style="font-size:0.75rem;">${i.period_start ? i.period_start.split('T')[0] : '—'} → ${i.period_end ? i.period_end.split('T')[0] : '—'}</td>
+        <td><strong>$${i.amount}</strong></td>
+        <td><span class="badge ${i.status}">${i.status}</span></td>
+        <td style="font-size:0.75rem;">${i.paid_at ? i.paid_at.split('T')[0] : '—'}</td>
+      </tr>
+    `).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--gray);padding:30px;">لا توجد فواتير</td></tr>';
+  } catch (e) { console.error('Invoices error:', e); }
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,5 +1,34 @@
 # CHANGELOG.md — سجل التغييرات
 
+## [v3.2.0] — 2026-06-14 — Phase 3C: Billing & Subscription Platform
+
+### Added
+- **New Module: Plan Manager** — `modules/billing/plan-manager.js` — 3 plans (Starter $0/mo, Professional $49/mo, Enterprise $199/mo) with structured limits (tenants, editors, articles, storage, API calls)
+- **New Module: Subscription Manager** — `modules/billing/subscription-manager.js` — lifecycle management (trial→active→suspended→expired→cancelled), 14-day trial seeded on tenant creation
+- **New Module: Invoice Manager** — `modules/billing/invoice-manager.js` — auto invoice number generation (INV-YYYYMM-XXXX), mark paid/overdue/cancelled, revenue aggregation (MRR, ARR, monthly)
+- **New Module: Usage Tracker** — `modules/billing/usage-tracker.js` — per-tenant tracking of articles, editors, API requests, storage with limit checking and violation alerts
+- **New Module: Migration** — `modules/billing/migrate.js` — 5-table verification, plan seeding, trial subscription seeding for all tenants
+- **New Routes: Billing API** — `routes/billing.js` — 18 endpoints under `/api/billing/`:
+  - Plans: GET `/plans`, `/plans/all`, POST `/plan/create`, PUT `/plan/:id`, POST `/plan/:id/deactivate|activate`
+  - Subscriptions: GET `/subscriptions`, GET `/subscription/tenant/:tenantId`, POST `/subscription/create`, POST `/subscription/:id/activate|suspend|renew|cancel`, PUT `/subscription/:id/plan`
+  - Invoices: GET `/invoices`, GET `/invoices/tenant/:tenantId`, POST `/invoice/generate`, POST `/invoice/:id/paid|overdue|cancel`
+  - Usage: GET `/usage`, GET `/usage/tenant/:tenantId`
+  - Revenue: GET `/revenue`
+- **New DB Tables:** `plans`, `subscriptions`, `invoices`, `usage_metrics`, `payment_events` added to JSON adapter
+- **Billing Admin Dashboard** — `admin/billing-center.html` — 5 tabs (Plans, Subscriptions, Invoices, Revenue, Usage) with CRUD modals and action buttons
+- **Tenant Billing Dashboard** — `admin/tenant-billing.html` — subscription status, plan info, usage progress bars, invoice history, limit warnings
+- **14-day trial system** — automatic trial creation for all tenants on startup, trial→active conversion flow
+
+### Changed
+- **`lib/dal/json-adapter.js`** — add 5 billing tables to init()
+- **`server.js`** — mount `/api/billing` routes; call `ensureBillingTables()` and `seedTrialSubscriptions()` on startup
+- **`.gitignore`** — add billing JSON files (plans, subscriptions, invoices, usage_metrics, payment_events)
+
+### Security
+- Billing routes use `adminAuth` (super_admin JWT) for plan/invoice/revenue management
+- Tenant-specific billing routes use `authenticateToken` + `requireTenantAccess` for proper isolation
+- Tenants can only view their own subscription, invoices, and usage — no cross-tenant access
+
 ## [v3.1.0] — 2026-06-14 — Phase 3B: Tenant Administration & White Label Platform
 
 ### Added

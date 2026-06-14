@@ -11,7 +11,7 @@
 | UUID | uuid | 9.0.0 |
 
 ## VERSION
-**Current:** v2.4.0
+**Current:** v3.2.0
 **Last updated:** 2026-06-14
 
 ## SYSTEM_FLOW (Phase 2C)

@@ -16,6 +16,7 @@ const { tenantMiddleware } = require('./middleware/tenant');
 const { ensureEditorialTables } = require('./modules/editorial/migrate');
 const { ensureAdTables } = require('./modules/ads/migrate');
 const { ensureTenantTables, migrateExistingData } = require('./modules/tenant/migrate');
+const { ensureBillingTables, seedTrialSubscriptions } = require('./modules/billing/migrate');
 
 const app = express();
 
@@ -43,6 +44,10 @@ app.use('/api/editorial', editorialRoutes);
 app.use('/api/ads', adRoutes);
 app.use('/api/tenants', tenantRoutes);
 app.use('/api/tenant', tenantAdminRoutes);
+
+// Billing routes
+const billingRoutes = require('./routes/billing');
+app.use('/api/billing', billingRoutes);
 
 app.get('/', (req, res) => res.sendFile(path.join(config.PUBLIC_DIR, 'index.html')));
 
@@ -84,6 +89,8 @@ app.listen(config.PORT, async () => {
   await ensureAdTables();
   await ensureTenantTables();
   await migrateExistingData();
+  await ensureBillingTables();
+  await seedTrialSubscriptions();
   scheduler.start();
 });
 

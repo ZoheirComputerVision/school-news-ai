@@ -106,6 +106,21 @@
 | 9 | [✓] New DB tables: tenant_settings, tenant_users, tenant_pages | ✅ تم |
 | 10 | [✓] 14 new tenant admin API endpoints | ✅ تم |
 
+## Phase 3C: 💰 Billing & Subscription Platform
+
+| # | المهمة | الحالة |
+|---|--------|--------|
+| 1 | [✓] Plan Manager (Starter, Professional, Enterprise with limits) | ✅ تم |
+| 2 | [✓] Subscription Manager (trial, activate, suspend, renew, cancel) | ✅ تم |
+| 3 | [✓] Invoice Manager (generate, mark paid, overdue, cancel, revenue) | ✅ تم |
+| 4 | [✓] Usage Tracker (articles, editors, API, storage per tenant) | ✅ تم |
+| 5 | [✓] 14-day trial system for new tenants | ✅ تم |
+| 6 | [✓] Revenue analytics (MRR, ARR, monthly revenue) | ✅ تم |
+| 7 | [✓] Billing admin dashboard (Plans, Subscriptions, Invoices, Revenue, Usage) | ✅ تم |
+| 8 | [✓] Tenant billing dashboard (plan, usage bars, invoices) | ✅ تم |
+| 9 | [✓] 5 new DB tables: plans, subscriptions, invoices, usage_metrics, payment_events | ✅ تم |
+| 10 | [✓] 18 billing API endpoints | ✅ تم |
+
 ## Phase 4: 📈 تحسينات متقدمة (الأيام القادمة)
 
 | # | المهمة | الحالة |
@@ -116,9 +131,9 @@
 | 4 | [ ] LLM writer per section style | ⏳ |
 | 5 | [ ] Auto image selection + caption | ⏳ |
 | 6 | [ ] Custom domain support | ⏳ |
-| 7 | [ ] Billing & subscriptions | ⏳ |
-| 8 | [ ] API marketplace | ⏳ |
-| 9 | [ ] Caching layer (Redis or LRU) | ⏳ |
+| 7 | [ ] API marketplace | ⏳ |
+| 8 | [ ] Caching layer (Redis or LRU) | ⏳ |
+| 9 | [ ] Payment gateway integration | ⏳ |
 
 ## Phase 5: ✨ تحسينات واستدامة (الأيام 31+)
 

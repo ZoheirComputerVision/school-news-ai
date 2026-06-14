@@ -369,7 +369,66 @@ Navigation is defined in `config/navigation.js`:
 - Users: table with create/edit/toggle active; inline modal
 - Analytics: summary cards + per-category tables (content, ads, editorial)
 
-## 10. Key Limitations
+## 10. Billing & Subscription Platform (Phase 3C)
+
+### Plan Manager (`modules/billing/plan-manager.js`)
+- 3 default plans: Starter (free), Professional ($49/mo), Enterprise ($199/mo)
+- Each plan has structured limits: tenants, editors, articles_per_month, storage_mb, api_calls_per_day
+- CRUD with activate/deactivate for plan lifecycle management
+
+### Subscription Manager (`modules/billing/subscription-manager.js`)
+- 5 statuses: trial → active → suspended → expired → cancelled
+- 14-day free trial automatically seeded for all tenants on startup
+- Manual activate/suspend/renew/cancel workflow for super_admin
+- Plan change support (upgrade/downgrade)
+
+### Invoice Manager (`modules/billing/invoice-manager.js`)
+- Auto-generated invoice numbers: `INV-YYYYMM-XXXX`
+- Statuses: pending → paid / overdue / cancelled
+- Revenue aggregation: total, MRR, ARR, monthly breakdown
+- Duplicate prevention per period
+
+### Usage Tracker (`modules/billing/usage-tracker.js`)
+- Real-time aggregation from existing tables (articles, editors) + stored metrics (API requests)
+- Period-based tracking (monthly cycles aligned with subscription period)
+- Limit checking against plan limits with violation reporting
+- Storage estimation from content character count
+
+### API Endpoints (`routes/billing.js` under `/api/billing`)
+| Method | Path | Auth |
+|--------|------|------|
+| GET | `/api/billing/plans` | Public |
+| GET | `/api/billing/plans/all` | adminAuth |
+| POST | `/api/billing/plan/create` | adminAuth |
+| PUT | `/api/billing/plan/:id` | adminAuth |
+| POST | `/api/billing/plan/:id/deactivate\|activate` | adminAuth |
+| GET | `/api/billing/subscriptions` | adminAuth |
+| GET | `/api/billing/subscription/tenant/:tenantId` | JWT + tenant access |
+| POST | `/api/billing/subscription/create` | JWT + super/tenant_admin |
+| POST | `/api/billing/subscription/:id/activate\|suspend\|renew\|cancel` | adminAuth |
+| PUT | `/api/billing/subscription/:id/plan` | adminAuth |
+| GET | `/api/billing/invoices` | adminAuth |
+| GET | `/api/billing/invoices/tenant/:tenantId` | JWT + tenant access |
+| POST | `/api/billing/invoice/generate` | adminAuth |
+| POST | `/api/billing/invoice/:id/paid\|overdue\|cancel` | adminAuth |
+| GET | `/api/billing/usage` | adminAuth |
+| GET | `/api/billing/usage/tenant/:tenantId` | JWT + tenant access |
+| GET | `/api/billing/revenue` | adminAuth |
+
+### Billing Dashboards
+- **Admin**: `/admin/billing-center.html` — 5 tabs (Plans, Subscriptions, Invoices, Revenue, Usage)
+- **Tenant**: `/admin/tenant-billing.html` — plan info, usage bars, invoice history, limit warnings
+
+### Database Tables
+| Table | Records | Description |
+|-------|---------|-------------|
+| `plans` | 3 default | Starter, Professional, Enterprise with limits |
+| `subscriptions` | Per tenant | Lifecycle with trial→active→suspended→expired→cancelled |
+| `invoices` | Per billing period | INV-YYYYMM-XXXX, status, amount, payment date |
+| `usage_metrics` | Per tenant/period | Article count, editors, API requests, storage |
+| `payment_events` | Future use | Payment gateway events (not yet integrated) |
+
+## 11. Key Limitations
 
 - **JSON DB:** Not safe for concurrent writes — SQLite recommended for production (set `DB_TYPE=sqlite`)
 - **Demo Fallback:** Real sources available but Facebook requires `FACEBOOK_ACCESS_TOKEN` in `.env`
@@ -378,7 +437,7 @@ Navigation is defined in `config/navigation.js`:
 - **No tests:** Zero test coverage
 - **Source Registry:** Full metadata in SQLite `sources` table with region, municipality, category, reliability scoring
 
-## 11. Deployment
+## 12. Deployment
 
 ```
 Local Dev:  Windows + Node.js + npm start
