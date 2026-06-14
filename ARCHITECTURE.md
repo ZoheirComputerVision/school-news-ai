@@ -24,22 +24,29 @@
 │                     API LAYER                              │
 │          Express Router: /api, /api/admin                  │
 │    Content CRUD, Search, Stats, Timeline, View Tracking    │
-├──────────────────────────────────────────────────────────┤
-│                   AI PIPELINE                              │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐ │
-│  │Collector │→ │ Analyzer │→ │  Writer  │→ │Publisher │ │
-│  │(per src) │  │ (15min)  │  │(on pub)  │  │ (10min)  │ │
-│  └────┬─────┘  └──────────┘  └──────────┘  └──────────┘ │
-│       ↓                                                     │
-│  ┌──────────┐                                              │
-│  │  Source  │  ← Collector Pipeline:                        │
-│  │ Registry │     ScraperFactory → Normalizer → Dedup      │
-│  │ (SQLite) │     → Scorer → Storage                        │
-│  └──────────┘                                              │
-│  ┌──────────┐  ┌──────────┐               ┌──────────┐      │
-│  │ Archiver │  │Scheduler │               │   DB    │      │
-│  │  (6hrs)  │  │(cron)    │               │(JSON)   │      │
-│  └──────────┘  └──────────┘               └──────────┘      │
+ ├──────────────────────────────────────────────────────────┤
+│                   AI PIPELINE (PHASE 2C)                    │
+│  ┌──────────┐  ┌──────────────┐  ┌──────────┐            │
+│  │Collector │→ │ Editorial    │→ │  Writer  │→ Publisher │
+│  │(per src) │  │ Classifier   │  │(SEO gen) │  (workflow)│
+│  └────┬─────┘  │(9 categories)│  └────┬─────┘  └──────────┘
+│       ↓        │confidence    │       ↓                    │
+│  ┌──────────┐  └──────┬───────┘  ┌──────────┐            │
+│  │  Source  │         ↓          │Governance│             │
+│  │ Registry │  ┌──────────────┐  │Dashboard │             │
+│  │ (SQLite) │  │Fact Validator│  │(HTML)    │             │
+│  └──────────┘  │(source rep)  │  └──────────┘            │
+│  ┌──────────┐  │(cross-source)│                            │
+│  │ Archiver │  └──────┬───────┘                            │
+│  │  (6hrs)  │         ↓                                   │
+│  └──────────┘  ┌──────────┐    ┌──────────┐               │
+│                │Publisher │    │Scheduler │               │
+│                │+ Queue   │←───│(cron)    │               │
+│                │+ Review  │    └──────────┘               │
+│                │+ Quota   │    ┌──────────┐               │
+│                └──────────┘    │   DB    │               │
+│                                │(JSON)   │               │
+│                                └──────────┘               │
 ├──────────────────────────────────────────────────────────┤
 │                     DATABASE LAYER                         │
 │     JSON files (9 tables) + SQLite (Schema v2 with         │
@@ -69,29 +76,55 @@ Source Registry (SQLite) → Collector
     7. SourceRegistry.markSync(source.id, success)
 ```
 
-### 3.2 Analysis Flow
+### 3.2 Analysis Flow (Phase 2C — Editorial Intelligence)
 ```
-raw_data (pending) → Analyzer → processed_content
-     │                   │
+raw_data (pending) → EditorialClassifier + FactValidator → processed_content
+     │                              │
      │   1. Duplicate Detection (bigram similarity > 75%)
-     │   2. Classification (keyword-based: news/activity/announcement)
-     │   3. Fact Check (source trust + date validation + content quality)
+     │   2. Editorial Classification (9 categories via keyword/context):
+     │      Event | National | Regional News | Society | Culture
+     │      Sports | Development | Faces & Stories | Advertisements
+     │      Confidence scoring with margin-of-victory weighting
+     │   3. Fact Validation:
+     │      - Source reputation from Source Registry (reliability_score)
+     │      - Cross-source duplicate comparison
+     │      - Date validation, content quality, named entity detection
      │   4. Urgency Detection (keyword counting)
-     │   5. Overall Score (weighted: 25% class + 35% fact + 25% source + 15% urgency)
+     │   5. Overall Score (weighted: 20% class + 30% fact + 25% source + 15% urgency + 10% passed)
      │
-     └──→ ai_decision_log (full audit trail)
+     └──→ ai_decision_log (full audit trail with per-category scores)
 ```
 
-### 3.3 Publishing Flow
+### 3.3 Publishing Flow (Phase 2C — Review Workflow + Queue)
 ```
-processed_content (draft/review) → Publisher
+processed_content (draft/review) → EditorialPublisher
      │
+     │   0. Priority Queue (sorted by importance × score × urgency × trust)
      │   1. Quality Check (title length, body length, source, similarity)
-     │   2. Auto-publish check (score >= 0.8, no emergency stop, quota OK)
-     │   3. Manual review if score < 0.8
-     │   4. Archive on publish/reject
+     │   2. Auto-publish check (score >= 0.8, fact >= 0.7, quota OK, no emergency)
+     │   3. Manual review workflow: pending → in_review → approved/rejected
+     │   4. Daily quota enforcement (MAX_PUBLISH_PER_DAY = 15)
+     │   5. Archive on publish/reject
      │
-     └──→ Public pages + Archive
+     ├──→ Public pages + Archive
+     └──→ ai_decision_log (full decision chain + governance trace)
+```
+
+### 3.4 Governance Flow
+```
+Each pipeline step writes to ai_decision_log:
+     ┌─────────────┐     ┌──────────────┐     ┌─────────────┐
+     │  Classifier │────→│ FactValidator │────→│   Writer    │
+     │ (category,  │     │ (reputation, │     │ (SEO, tags, │
+     │  confidence)│     │  cross-dup)  │     │  slug)      │
+     └─────────────┘     └──────────────┘     └──────┬──────┘
+                                                      ↓
+     ┌─────────────┐     ┌──────────────┐     ┌─────────────┐
+     │ Governance  │←────│  Publisher   │←────│    Queue    │
+     │ Dashboard   │     │ (approve/    │     │ (priority   │
+     │ (HTML+API)  │     │  reject/     │     │  ordering)  │
+     └─────────────┘     │  auto)       │     └─────────────┘
+                          └──────────────┘
 ```
 
 ## 4. Database Schema
@@ -153,7 +186,7 @@ processed_content (draft/review) → Publisher
 
 - **JSON DB:** Not safe for concurrent writes — SQLite recommended for production (set `DB_TYPE=sqlite`)
 - **Demo Fallback:** Real sources available but Facebook requires `FACEBOOK_ACCESS_TOKEN` in `.env`
-- **Rule-based AI:** Classification is keyword-based, not ML
+- **Rule-based AI:** Classification is keyword-based (Phase 2C upgrade to 9 categories with confidence scoring)
 - **Single-tenant:** One school only
 - **No tests:** Zero test coverage
 - **Source Registry:** Full metadata in SQLite `sources` table with region, municipality, category, reliability scoring

@@ -244,6 +244,38 @@ router.post('/scheduler/run-collector', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+router.get('/governance', (req, res) => {
+  try {
+    const { limit = 50, offset = 0, content_id } = req.query;
+    const result = publisher.getGovernanceLog({ limit: parseInt(limit), offset: parseInt(offset), contentId: content_id ? parseInt(content_id) : undefined });
+    res.json(result);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.get('/governance/summary', (req, res) => {
+  try {
+    res.json(publisher.getGovernanceSummary());
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.get('/pipeline/queue', (req, res) => {
+  try {
+    res.json({ queue: publisher.getQueue() });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.get('/pipeline/stats', (req, res) => {
+  try {
+    const EditorialClassifier = require('../modules/classifier');
+    const classifier = new EditorialClassifier();
+    res.json({
+      categories: classifier.getCategories(),
+      queue: publisher.getQueue().length,
+      governance: publisher.getGovernanceSummary(),
+    });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 router.get('/collector/status', (req, res) => {
   try {
     const monitor = collector.getMonitor();

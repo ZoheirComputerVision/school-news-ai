@@ -1,5 +1,79 @@
 # CHANGELOG.md — سجل التغييرات
 
+## [2.4.0] — 2026-06-14 — Phase 2C: Editorial Intelligence Layer
+
+### Added
+- **`modules/classifier.js`** — Editorial Classifier بـ 9 فئات تحريرية
+  - الفئات: فعاليات (event)، أخبار وطنية (national)، أخبار جهوية (regional-news)، مجتمع (society)، ثقافة وفن (culture)، رياضة (sports)، تنمية وتطوير (development)، شخصيات وقصص (faces-stories)، إعلانات (advertisements)
+  - تصنيف بالكلمات المفتاحية (strong/medium/context) بوزن (0.25/0.15/0.10)
+  - حساب الثقة (confidence) بهامش الفوز (margin-of-victory) بين الفئة الأولى والثانية
+  - دعم الأسماء المستعارة: news→national, activity→event, announcement→advertisements
+  - دوال: `classify(text)`, `resolveAlias(cat)`, `getCategories()`, `getCategoryLabel()`
+- **`modules/fact-validator.js`** — طبقة تدقيق الحقائق
+  - سمعة المصدر من Source Registry (reliability_score × 0.25)
+  - فلترة المصادر الحكومية (education.gov.dz, douane.gov.dz, mjs.gov.dz)
+  - التحقق من التاريخ (ليس مستقبليًا، بعد افتتاح الثانوية 2023-09-01)
+  - جودة المحتوى (طول النص، وجود أسماء شخصيات، تفاصيل)
+  - كشف التكرار عبر المصادر (cross-source duplicate comparison)
+  - النتيجة: score (0-1)، passed (≥0.5)، verdict، أسباب مفصلة
+- **`admin/governance.html`** — لوحة حوكمة AI
+  - ملخص إجمالي: عدد القرارات، متوسط الثقة، نشر تلقائي، رفض، مراجعة بشرية
+  - سلسلة القرارات (decision chain) لكل محتوى
+  - تصفية حسب نوع القرار (نشر تلقائي، مرفوض، مراجعة، تصنيف)
+  - بحث بمعرف المحتوى
+  - عرض ثقة كل خطوة في السلسلة
+- **Admin API endpoints جديدة**:
+  - `GET /admin/governance` — سجل القرارات مع تفاصيل الإدخال/الإخراج
+  - `GET /admin/governance/summary` — ملخص إحصائي للحوكمة
+  - `GET /admin/pipeline/queue` — قائمة انتظار النشر (مرتبة حسب الأولوية)
+  - `GET /admin/pipeline/stats` — إحصائيات خط الأنابيب (التصنيفات + الطابور + الحوكمة)
+- **`modules/source-registry.js`** — دوال جديدة:
+  - `findByName(name)` — بحث عن مصدر بالاسم
+  - `findByUrl(url)` — بحث عن مصدر بالرابط
+- **`public/js/api.js`** — دوال API جديدة:
+  - `admin.getGovernance()`, `admin.getGovernanceSummary()`, `admin.getGovernanceByContent(id)`
+  - `admin.getPipelineQueue()`, `admin.getPipelineStats()`
+
+### Changed
+- **`modules/analyzer.js`** — إعادة هيكلة كاملة
+  - يستخدم `classifier.js` بدلاً من التصنيف القديم (3 فئات → 9 فئات)
+  - يستخدم `fact-validator.js` بدلاً من `factCheck()` القديم
+  - وزن النتيجة الإجمالية: 20% تصنيف + 30% تدقيق + 25% مصدر + 15% إلحاح + 10% اجتياز
+  - يسجل scores كل فئة في ai_decision_log
+  - يستخدم `SourceRegistry.findByName()` للحصول على موثوقية المصدر
+- **`modules/writer.js`** — إعادة هيكلة كاملة
+  - قوالب منفصلة لكل فئة من الفئات الـ 9 (event, national, regional-news, society, culture, sports, development, faces-stories, advertisements)
+  - توليد SEO: `generateSEO(content)` ← metaDescription، tags، slug، canonicalTitle
+  - `_cleanTitle(title)` — تنظيف العنوان من الإيموجي والمسافات
+  - `_generateTags(content)` — استخراج tags من النص حسب الكلمات المفتاحية
+  - `generateArticle(content)` يُرجع `{ article, seo }` (متوافق مع القديم)
+- **`modules/publisher.js`** — إعادة هيكلة كاملة
+  - `getQueue()` — قائمة انتظار مرتبة حسب الأولوية (أهمية × ثقة × إلحاح × مصدر)
+  - `getGovernanceLog(options)` — سجل حوكمة مع إثراء البيانات (input/output/content)
+  - `getGovernanceSummary()` — ملخص إحصائي شامل
+  - `_computePriority(content)` — حساب أولوية التصنيف في الطابور
+  - `publish()` يستخدم `getQueue()` بدلاً من `findDraftsForPublish()`
+- **`modules/scheduler.js`** — تحسين السجلات:
+  - `runAnalyzer()` يعرض اسم الفئة التحريـرية (بالعربية)
+  - `runPublisher()` يستخدم `publisher.getQueue()` بدلاً من `articles.findDraftsForPublish()`
+- **`lib/repositories/article-repository.js`** — `getStats()` يدعم الـ 9 فئات (byCategory)
+- **`lib/repositories/archive-repository.js`** — `getStats()` يدعم الـ 9 فئات (by_category)
+- **`admin/review.html`** — تحديث قائمة التصنيفات إلى الـ 9 فئات
+- **جميع صفحات الإدارة (admin/*.html)** — إضافة رابط "🔍 حوكمة AI" إلى شريط التنقل
+- **`ARCHITECTURE.md`** — تحديث مخطط AI Pipeline (Phase 2C) وتدفق التحليل والنشر والحوكمة
+- **`PROJECT_MAP.md`** — تحديث الإصدار v2.3.0، المخطط الانسيابي، الأقسام، الإنجازات
+- **`ROADMAP.md`** — إضافة المهمة 6 (Phase 2C Editorial Intelligence Layer)
+- **`NEXT_SESSION.md`** — تحديث التعليمات للجلسة القادمة
+
+### Pipeline (Phase 2C)
+```
+Source Registry → Collector → EditorialClassifier → FactValidator → Writer → Publisher
+       ↓             ↓              ↓                    ↓            ↓         ↓
+    SQLite      4 collectors   9 categories      source rep +     SEO gen +  queue +
+                                + confidence     cross-source     templates  workflow +
+                                                                             governance
+```
+
 ## [2.3.0] — 2026-06-14 — Phase 2B: Source Registry & Complete Content Pipeline
 
 ### Added

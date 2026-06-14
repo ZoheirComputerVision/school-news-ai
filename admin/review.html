@@ -18,6 +18,7 @@
   <div class="admin-nav">
     <a href="/admin/dashboard.html">📊 لوحة القيادة</a>
     <a href="/admin/review.html" class="active">📝 مراجعة المحتوى</a>
+    <a href="/admin/governance.html">🔍 حوكمة AI</a>
     <a href="/admin/logs.html">📋 سجل AI</a>
     <a href="/admin/settings.html">⚙️ الإعدادات</a>
   </div>
@@ -59,7 +60,7 @@
           return;
         }
 
-        const catNames = { news: '📰 خبر', activity: '📸 نشاط', announcement: '📢 إعلان', uncategorized: '❓ غير مصنف' };
+        const catNames = { event: '📸 فعاليات', national: '📰 أخبار وطنية', 'regional-news': '📍 أخبار جهوية', society: '👥 مجتمع', culture: '🎭 ثقافة وفن', sports: '⚽ رياضة', development: '🏗️ تنمية', 'faces-stories': '🌟 شخصيات وقصص', advertisements: '📢 إعلانات', news: '📰 خبر', activity: '📸 نشاط', announcement: '📢 إعلان', uncategorized: '❓ غير مصنف' };
         const stNames = { published: '✅ منشور', draft: '📝 مسودة', review: '⏳ مراجعة', rejected: '❌ مرفوض' };
 
         let html = `<table class="table">
@@ -174,11 +175,17 @@
         </div>
         <div class="form-group">
           <label>التصنيف</label>
-          <select class="form-control" id="edit-category">
-            <option value="news">📰 خبر</option>
-            <option value="activity">📸 نشاط</option>
-            <option value="announcement">📢 إعلان</option>
-          </select>
+            <select class="form-control" id="edit-category">
+              <option value="event">📸 فعاليات</option>
+              <option value="national">📰 أخبار وطنية</option>
+              <option value="regional-news">📍 أخبار جهوية</option>
+              <option value="society">👥 مجتمع</option>
+              <option value="culture">🎭 ثقافة وفن</option>
+              <option value="sports">⚽ رياضة</option>
+              <option value="development">🏗️ تنمية وتطوير</option>
+              <option value="faces-stories">🌟 شخصيات وقصص</option>
+              <option value="advertisements">📢 إعلانات</option>
+            </select>
         </div>
         <div class="form-group">
           <label>المصدر</label>

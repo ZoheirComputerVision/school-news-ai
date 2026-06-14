@@ -85,5 +85,10 @@ const API = {
     getTimeline: () => API.get('/admin/archive/timeline', true),
     getSources: () => API.get('/admin/sources', true),
     runCollector: () => API.post('/admin/scheduler/run-collector'),
+    getGovernance: (params) => API.get(`/admin/governance?${new URLSearchParams(params||{}).toString()}`, true),
+    getGovernanceSummary: () => API.get('/admin/governance/summary', true),
+    getGovernanceByContent: (id) => API.get(`/admin/governance?content_id=${id}`, true),
+    getPipelineQueue: () => API.get('/admin/pipeline/queue', true),
+    getPipelineStats: () => API.get('/admin/pipeline/stats', true),
   },
 };

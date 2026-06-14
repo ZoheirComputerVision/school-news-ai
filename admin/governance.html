@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>حوكمة AI | لوحة التحكم</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .gov-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:15px; margin-bottom:20px; }
+    .gov-card { background:#f8fafc; border-radius:8px; padding:15px; text-align:center; border:1px solid #e5e7eb; }
+    .gov-card h3 { font-size:1.8rem; margin:5px 0; color:#1a3a5c; }
+    .gov-card p { color:#6b7280; font-size:0.85rem; }
+    .gov-score-bar { height:8px; border-radius:4px; background:#e5e7eb; margin:8px 0; overflow:hidden; }
+    .gov-score-fill { height:100%; border-radius:4px; transition:width 0.5s; }
+    .gov-log-item { padding:12px; border-bottom:1px solid #f0f0f0; }
+    .gov-log-item:last-child { border-bottom:none; }
+    .gov-log-header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+    .gov-badge { display:inline-block; padding:2px 10px; border-radius:12px; font-size:0.75rem; font-weight:bold; }
+    .gov-badge.approve { background:#dcfce7; color:#166534; }
+    .gov-badge.reject { background:#fef2f2; color:#991b1b; }
+    .gov-badge.review { background:#fef3c7; color:#92400e; }
+    .gov-badge.info { background:#dbeafe; color:#1e40af; }
+    .gov-details { margin-top:8px; font-size:0.8rem; color:#6b7280; }
+    .gov-details pre { background:#f9fafb; padding:8px; border-radius:4px; font-size:0.75rem; max-height:100px; overflow:auto; white-space:pre-wrap; }
+    .gov-filter { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; align-items:center; }
+    .gov-summary-table { width:100%; }
+    .gov-summary-table td { padding:8px 4px; }
+    .gov-progress { height:20px; background:#e5e7eb; border-radius:10px; overflow:hidden; position:relative; }
+    .gov-progress-fill { height:100%; border-radius:10px; transition:width 0.5s; display:flex; align-items:center; justify-content:center; font-size:0.7rem; color:white; font-weight:bold; }
+    .chain-card { background:white; border:1px solid #e5e7eb; border-radius:8px; padding:15px; margin-bottom:10px; }
+    .chain-step { display:flex; align-items:center; gap:12px; padding:8px 0; border-bottom:1px dashed #f0f0f0; }
+    .chain-step:last-child { border-bottom:none; }
+    .chain-step-icon { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; }
+  </style>
+</head>
+<body class="admin-body">
+  <div class="admin-header">
+    <h1>🔧 لوحة تحكم الجريدة الذكية</h1>
+    <div class="user-info">
+      <span id="admin-user">المشرف</span>
+      <a href="/" class="btn btn-sm btn-accent">🏠 الموقع</a>
+      <button class="btn btn-sm btn-danger" onclick="logout()">🚪 خروج</button>
+    </div>
+  </div>
+  <div class="admin-nav">
+    <a href="/admin/dashboard.html">📊 لوحة القيادة</a>
+    <a href="/admin/review.html">📝 مراجعة المحتوى</a>
+    <a href="/admin/governance.html" class="active">🔍 حوكمة AI</a>
+    <a href="/admin/logs.html">📋 سجل AI</a>
+    <a href="/admin/settings.html">⚙️ الإعدادات</a>
+  </div>
+  <div class="admin-content">
+    <div id="gov-summary" class="gov-grid"></div>
+
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <span>🔍 سلسلة قرارات الذكاء الاصطناعي</span>
+        <span id="gov-count" style="background:#e5e7eb;padding:2px 12px;border-radius:12px;font-size:0.8rem;">0</span>
+      </div>
+      <div class="admin-card-body">
+        <div class="gov-filter">
+          <button class="btn btn-sm" onclick="loadGovernance()">🔄 الكل</button>
+          <button class="btn btn-sm btn-success" onclick="filterType('auto_publish')">✓ نشر تلقائي</button>
+          <button class="btn btn-sm btn-danger" onclick="filterType('rejected')">✗ مرفوض</button>
+          <button class="btn btn-sm btn-warning" onclick="filterType('pending_review')">⏳ مراجعة</button>
+          <button class="btn btn-sm btn-primary" onclick="filterType('classification')">🏷 تصنيف</button>
+          <input type="number" id="gov-content-id" placeholder="معرف المحتوى" style="width:100px;padding:6px;border:1px solid #e5e7eb;border-radius:6px;">
+          <button class="btn btn-sm" onclick="filterByContentId()">🔍 بحث</button>
+        </div>
+        <div id="gov-list">
+          <div class="loading">جاري تحميل سجل الحوكمة...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="/js/api.js"></script>
+  <script>
+    function checkAuth() { if (!localStorage.getItem('admin_token')) window.location.href = '/admin'; }
+    checkAuth();
+    document.getElementById('admin-user').textContent = localStorage.getItem('admin_user') || 'Zoheir IT Solutions';
+    function logout() { localStorage.removeItem('admin_token'); localStorage.removeItem('admin_user'); window.location.href = '/admin'; }
+
+    const decisionLabels = {
+      classification: { label: 'تصنيف', icon: '🏷', badge: 'info' },
+      content_generation: { label: 'توليد محتوى', icon: '🖋', badge: 'info' },
+      auto_publish: { label: 'نشر تلقائي', icon: '📰', badge: 'approve' },
+      manual_approve: { label: 'موافقة بشرية', icon: '✅', badge: 'approve' },
+      rejected: { label: 'مرفوض', icon: '❌', badge: 'reject' },
+      pending_review: { label: 'في انتظار المراجعة', icon: '⏳', badge: 'review' },
+      duplicate_rejected: { label: 'مكرر', icon: '🔄', badge: 'reject' },
+      quality_check_failed: { label: 'فشل فحص الجودة', icon: '⚠️', badge: 'reject' },
+    };
+
+    async function loadGovernance() {
+      const container = document.getElementById('gov-list');
+      const countEl = document.getElementById('gov-count');
+      container.innerHTML = '<div class="loading">جاري تحميل سجل الحوكمة...</div>';
+      try {
+        const data = await API.admin.getGovernance();
+        countEl.textContent = data.total;
+        const summary = await API.admin.getGovernanceSummary();
+        renderSummary(summary);
+
+        if (!data.items.length) {
+          container.innerHTML = '<p style="color:#888;text-align:center;padding:30px;">لا توجد قرارات حوكمة</p>';
+          return;
+        }
+
+        let html = '';
+        data.items.forEach(log => {
+          const info = decisionLabels[log.decisionType] || { label: log.decisionType, icon: '🔍', badge: 'info' };
+          const scorePct = Math.round((log.confidence || 0) * 100);
+          const scoreColor = log.confidence >= 0.7 ? '#22c55e' : log.confidence >= 0.4 ? '#f59e0b' : '#ef4444';
+          html += `<div class="gov-log-item">
+            <div class="gov-log-header">
+              <div>
+                <span class="gov-badge ${info.badge}">${info.icon} ${info.label}</span>
+                <strong>#${log.contentId}</strong>
+                ${log.title ? `<span style="color:#6b7280;font-size:0.85rem;">${log.title.slice(0, 50)}</span>` : ''}
+              </div>
+              <div style="font-size:0.8rem;color:#888;">${new Date(log.createdAt).toLocaleString('ar-DZ')}</div>
+            </div>
+            <div class="gov-details">
+              <div style="display:flex;gap:15px;flex-wrap:wrap;margin-top:5px;">
+                <span>النموذج: ${log.modelVersion || 'N/A'}</span>
+                <span>الثقة: <span style="color:${scoreColor};font-weight:bold;">${scorePct}%</span></span>
+                <span>مراجعة بشرية: ${log.humanReviewed ? '✅ نعم' : '❌ لا'}</span>
+              </div>
+              ${log.output ? `<pre>${JSON.stringify(log.output, null, 2)}</pre>` : ''}
+            </div>
+          </div>`;
+        });
+        container.innerHTML = html;
+      } catch (e) {
+        container.innerHTML = `<div class="alert alert-danger">⚠️ ${e.message}</div>`;
+      }
+    }
+
+    function renderSummary(summary) {
+      document.getElementById('gov-summary').innerHTML = `
+        <div class="gov-card">
+          <p>📊 إجمالي القرارات</p>
+          <h3>${summary.totalDecisions || 0}</h3>
+        </div>
+        <div class="gov-card">
+          <p>📝 إجمالي المحتوى</p>
+          <h3>${summary.totalContent || 0}</h3>
+        </div>
+        <div class="gov-card">
+          <p>⭐ متوسط الثقة</p>
+          <h3>${Math.round((summary.averageOverallScore || 0) * 100)}%</h3>
+        </div>
+        <div class="gov-card">
+          <p>📰 نشر تلقائي</p>
+          <h3>${summary.autoPublishRate || 0}</h3>
+        </div>
+        <div class="gov-card">
+          <p>❌ مرفوض</p>
+          <h3 style="color:#ef4444;">${summary.rejectionRate || 0}</h3>
+        </div>
+        <div class="gov-card">
+          <p>👤 مراجعة بشرية</p>
+          <h3>${summary.humanReviewRate || 0}</h3>
+        </div>
+      `;
+    }
+
+    async function filterType(type) {
+      const container = document.getElementById('gov-list');
+      container.innerHTML = '<div class="loading">جاري التحميل...</div>';
+      try {
+        const all = await API.admin.getGovernance();
+        const filtered = all.items.filter(l => l.decisionType === type);
+        document.getElementById('gov-count').textContent = filtered.length;
+        // Re-render filtered
+        const info = decisionLabels[type] || { label: type, icon: '🔍', badge: 'info' };
+        let html = `<p style="padding:8px;background:#f0f0f0;border-radius:6px;margin-bottom:10px;">عرض: ${info.icon} ${info.label} (${filtered.length})</p>`;
+        filtered.forEach(log => {
+          const scorePct = Math.round((log.confidence || 0) * 100);
+          html += `<div class="gov-log-item">
+            <div class="gov-log-header">
+              <div>
+                <span class="gov-badge ${info.badge}">${info.icon} ${info.label}</span>
+                <strong>#${log.contentId}</strong>
+                ${log.title ? `<span style="color:#6b7280;font-size:0.85rem;">${log.title.slice(0,50)}</span>` : ''}
+              </div>
+              <div style="font-size:0.8rem;color:#888;">${new Date(log.createdAt).toLocaleString('ar-DZ')}</div>
+            </div>
+            <div class="gov-details">
+              الثقة: ${scorePct}% | النموذج: ${log.modelVersion || 'N/A'} | مراجعة: ${log.humanReviewed ? '✅' : '❌'}
+              ${log.output ? `<pre>${JSON.stringify(log.output, null, 2)}</pre>` : ''}
+            </div>
+          </div>`;
+        });
+        if (!filtered.length) html += '<p style="color:#888;text-align:center;padding:30px;">لا توجد قرارات من هذا النوع</p>';
+        container.innerHTML = html;
+      } catch (e) { container.innerHTML = `<div class="alert alert-danger">⚠️ ${e.message}</div>`; }
+    }
+
+    async function filterByContentId() {
+      const id = document.getElementById('gov-content-id').value;
+      if (!id) { loadGovernance(); return; }
+      const container = document.getElementById('gov-list');
+      container.innerHTML = '<div class="loading">جاري التحميل...</div>';
+      try {
+        const data = await API.admin.getGovernanceByContent(id);
+        document.getElementById('gov-count').textContent = data.items.length;
+        let html = `<p style="padding:8px;background:#f0f0f0;border-radius:6px;margin-bottom:10px;">عرض: سلسلة قرارات المحتوى #${id} (${data.items.length})</p>`;
+        const chainSteps = {
+          0: { icon: '📥', label: 'استلام', color: '#3b82f6' },
+          classification: { icon: '🏷', label: 'تصنيف', color: '#8b5cf6' },
+          content_generation: { icon: '🖋', label: 'توليد', color: '#f59e0b' },
+          auto_publish: { icon: '📰', label: 'نشر تلقائي', color: '#22c55e' },
+          manual_approve: { icon: '✅', label: 'موافقة', color: '#22c55e' },
+          rejected: { icon: '❌', label: 'رفض', color: '#ef4444' },
+          quality_check_failed: { icon: '⚠️', label: 'فشل الجودة', color: '#ef4444' },
+        };
+        data.items.forEach((log, i) => {
+          const step = chainSteps[log.decisionType] || { icon: '🔍', label: log.decisionType, color: '#6b7280' };
+          const scorePct = Math.round((log.confidence || 0) * 100);
+          html += `<div class="chain-card">
+            <div class="chain-step">
+              <div class="chain-step-icon" style="background:${step.color}20;color:${step.color};">${step.icon}</div>
+              <div style="flex:1;">
+                <strong>${step.label}</strong>
+                <div style="font-size:0.75rem;color:#888;">${log.modelVersion || ''} | ${new Date(log.createdAt).toLocaleString('ar-DZ')}</div>
+              </div>
+              <div style="text-align:center;">
+                <div style="font-size:1.2rem;font-weight:bold;color:${scorePct >= 70 ? '#22c55e' : scorePct >= 40 ? '#f59e0b' : '#ef4444'};">${scorePct}%</div>
+                <div style="font-size:0.7rem;color:#888;">ثقة</div>
+              </div>
+            </div>
+            ${log.output ? `<pre>${JSON.stringify(log.output, null, 2)}</pre>` : ''}
+          </div>`;
+        });
+        if (!data.items.length) html += '<p style="color:#888;text-align:center;padding:30px;">لا توجد قرارات لهذا المحتوى</p>';
+        container.innerHTML = html;
+      } catch (e) { container.innerHTML = `<div class="alert alert-danger">⚠️ ${e.message}</div>`; }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadGovernance);
+  </script>
+</body>
+</html>

@@ -23,7 +23,7 @@
 | _Sprint 1B_ | _Data Layer Refactor_ | _✅ Complete_ | _DAL + Repositories + Backup + Adapters_ |
 | _Sprint 1C_ | _SQLite Migration_ | _✅ Complete_ | _Full migration + fallback + cutover_ |
 
-## Phase 2: 🔵 بنية بيانات ومصادر حقيقية (الأيام 4-7)
+## Phase 2: 🔵 مصادر حقيقية ونظام تحريري (الأيام 4-7)
 
 | # | المهمة | الحالة |
 |---|--------|--------|
@@ -32,7 +32,13 @@
 | 3 | [✓] Multi-source deduplication (hash/URL/title) & trust scoring | ✅ تم |
 | 4 | [✓] Collector monitoring dashboard (status/logs/health) | ✅ تم |
 | 5 | [✓] Source Registry (centralized metadata + SQLite schema) | ✅ تم |
-| 6 | [ ] Caching layer (Redis or LRU) | ⏳ |
+| 6 | [✓] **Phase 2C: Editorial Intelligence Layer** | ✅ تم |
+|   | - 9-category classifier (Event, National, Regional, Society, Culture, Sports, Development, Faces & Stories, Advertisements) | ✅ |
+|   | - Fact validation with source reputation + cross-source comparison | ✅ |
+|   | - AI Writer with SEO metadata (meta description, tags, slug) | ✅ |
+|   | - Editorial review workflow + priority publishing queue | ✅ |
+|   | - AI Governance dashboard (decision chain viewer + confidence scores) | ✅ |
+| 7 | [ ] Caching layer (Redis or LRU) | ⏳ |
 
 ## Phase 3: ⚫ Neo Vintage Newspaper Design (الأيام 8-14)
 

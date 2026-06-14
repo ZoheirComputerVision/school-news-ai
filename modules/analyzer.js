@@ -1,33 +1,15 @@
 const db = require('../database');
 const { ArticleRepository } = require('../lib/repositories/article-repository');
+const EditorialClassifier = require('./classifier');
+const FactValidator = require('./fact-validator');
 
 const articles = new ArticleRepository(db.adapter);
-
-const CLASSIFIER = {
-  news: {
-    // كلمات رئيسية قوية (وزن 0.25)
-    strong: ['أعلنت', 'صرَّح', 'أكد', 'كشف', 'استنكر', 'ندد', 'رحَّب', 'دعا'],
-    // كلمات متوسطة (وزن 0.15)
-    medium: ['وزارة', 'نتائج', 'قرار', 'تعليمات', 'مرسوم', 'منشور', 'بلاغ', 'بيان'],
-    // كلمات سياقية (وزن 0.10)
-    context: ['حسب ', 'أفاد', 'أشار', 'أوضح', 'بخصوص', 'حول', 'بشأن'],
-  },
-  activity: {
-    strong: ['نظَّمت', 'شارك', 'شاركت', 'في إطار', 'بمناسبة', 'احتضنت'],
-    medium: ['زيارة', 'خرجة', 'نشاط', 'ورشة', 'حفل', 'مسابقة', 'رحلة', 'مخيم'],
-    context: ['تلاميذ', 'أساتذة', 'مؤسسة', 'قسم', 'ميدانية', 'تربوية', 'ثقافية'],
-  },
-  announcement: {
-    strong: ['يعلن', 'تعلن', 'تنظم', 'تدعو', 'تعلن إدارة', 'فتح', 'تسجيل'],
-    medium: ['مسابقة توظيف', 'أبواب مفتوحة', 'مباراة', 'انتقاء', 'إيداع', 'ملفات'],
-    context: ['على الراغبين', 'آخر أجل', 'تاريخ', 'مكتب', 'إلى جميع', 'يرجى'],
-  },
-};
+const classifier = new EditorialClassifier();
+const factValidator = new FactValidator();
 
 class ContentAnalyzer {
   _preprocess(text) {
     if (!text) return '';
-    // preserve Arabic letters/numbers, remove only ASCII punctuation
     return text
       .replace(/[^\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF0-9\s]/g, ' ')
       .replace(/\s+/g, ' ')
@@ -36,7 +18,6 @@ class ContentAnalyzer {
 
   _computeTextSimilarity(hash1, hash2) {
     if (!hash1 || !hash2) return 0;
-    // bigram-based similarity for Arabic text
     const bigrams = (s) => {
       const b = new Set();
       for (let i = 0; i < s.length - 1; i++) b.add(s.substring(i, i + 2));
@@ -51,7 +32,6 @@ class ContentAnalyzer {
 
   _detectDuplicate(body, title) {
     if (!body) return { isDuplicate: false, similarity: 0 };
-
     const existing = articles.findAll();
     for (const item of existing) {
       const bodySim = this._computeTextSimilarity(body.slice(0, 200), (item.body || '').slice(0, 200));
@@ -64,50 +44,6 @@ class ContentAnalyzer {
     return { isDuplicate: false, similarity: 0 };
   }
 
-  classify(text) {
-    const cleaned = this._preprocess(text);
-    if (!cleaned) return { category: 'uncategorized', confidence: 0, scores: { news: 0, activity: 0, announcement: 0 } };
-
-    const scores = { news: 0, activity: 0, announcement: 0 };
-
-    for (const [cat, levels] of Object.entries(CLASSIFIER)) {
-      // Strong keywords
-      for (const word of levels.strong) {
-        const regex = new RegExp(word, 'i');
-        if (regex.test(cleaned)) scores[cat] += 0.25;
-      }
-      // Medium keywords
-      for (const word of levels.medium) {
-        const regex = new RegExp(word, 'i');
-        if (regex.test(cleaned)) scores[cat] += 0.15;
-      }
-      // Context keywords
-      for (const word of levels.context) {
-        const regex = new RegExp(word, 'i');
-        if (regex.test(cleaned)) scores[cat] += 0.10;
-      }
-    }
-
-    const maxCat = Object.entries(scores).sort((a, b) => b[1] - a[1])[0];
-    const maxScore = maxCat[1];
-
-    let category;
-    let confidence;
-
-    if (maxScore >= 0.35) {
-      category = maxCat[0];
-      confidence = Math.min(maxScore * 0.8 + 0.3, 0.95);
-    } else if (maxScore >= 0.15) {
-      category = maxCat[0];
-      confidence = Math.min(maxScore * 0.6 + 0.2, 0.6);
-    } else {
-      category = 'uncategorized';
-      confidence = Math.min(maxScore, 0.3);
-    }
-
-    return { category, confidence: Math.round(confidence * 100) / 100, scores };
-  }
-
   _detectUrgency(text) {
     const urgent = ['عاجل', 'هام', 'ضروري', 'تنبيه', 'مستعجل', 'فوري', 'آخر أجل', 'اليوم', 'غداً'];
     const count = urgent.filter(w => (text || '').includes(w)).length;
@@ -116,84 +52,9 @@ class ContentAnalyzer {
     return 0.3;
   }
 
-  factCheck(data) {
-    let score = 0.5;
-    const reasons = [];
-
-    // المصدر
-    if (data.source_url?.includes('education.gov.dz')) {
-      score += 0.2;
-      reasons.push('مصدر رسمي');
-    } else if (data.source?.includes('فيسبوك') || data.source?.includes('facebook')) {
-      score += 0.05;
-      reasons.push('مصدر فيسبوك');
-    }
-
-    // التحقق من اسم الثانوية (وجود المرجع الأساسي يزيد الثقة)
-    const schoolRefs = ['المجاهد خليل محمد', 'عين كرمس', 'تيارت', 'ثانوية'];
-    const refCount = schoolRefs.filter(r => (data.body || '').includes(r)).length;
-    if (refCount >= 2) {
-      score += 0.15;
-      reasons.push('يحتوي مراجع المؤسسة');
-    }
-
-    // التحقق من التاريخ
-    if (data.event_date) {
-      const d = new Date(data.event_date);
-      const now = new Date();
-      const schoolStart = new Date('2023-09-01');
-      if (d > now) {
-        score -= 0.4;
-        reasons.push('تاريخ مستقبلي');
-      }
-      if (d < schoolStart) {
-        score -= 0.3;
-        reasons.push('تاريخ قبل افتتاح الثانوية');
-      }
-    }
-
-    // التحقق من الجودة (طول المحتوى)
-    if (data.body?.length > 150) {
-      score += 0.1;
-      reasons.push('محتوى مفصل');
-    } else if (data.body?.length < 30) {
-      score -= 0.15;
-      reasons.push('محتوى قصير جدًا');
-    }
-
-    // التحقق من وجود أسماء أشخاص
-    const teacherTitles = ['أستاذ', 'مدير', 'مستشار', 'ناظر', 'أستاذة', 'السيد', 'السيدة'];
-    if (teacherTitles.some(t => (data.body || '').includes(t))) {
-      score += 0.1;
-      reasons.push('يحتوي أسماء شخصيات');
-    }
-
-    // معاقبة المحتوى المجرد من التفاصيل
-    if ((data.body || '').length > 50 && (data.body || '').length < 100 && !data.event_date) {
-      score -= 0.1;
-      reasons.push('محتوى بدون تاريخ');
-    }
-
-    score = Math.max(0, Math.min(1, score));
-
-    let verdict;
-    if (score >= 0.8) verdict = 'موثوق ✓';
-    else if (score >= 0.5) verdict = 'بحاجة مراجعة ⚠️';
-    else verdict = 'مرفوض ✗';
-
-    return {
-      score: Math.round(score * 100) / 100,
-      passed: score >= 0.5,
-      verdict,
-      reasons,
-    };
-  }
-
   _extractSummary(text) {
     if (!text) return '';
     const cleaned = text.replace(/\s+/g, ' ').trim();
-
-    // استخراج الجملة الأولى ذات المعنى (أكثر من 15 كلمة)
     const sentences = cleaned.split(/[.،\n]/).filter(s => s.trim().length > 0);
     for (const sentence of sentences) {
       const words = sentence.trim().split(/\s+/);
@@ -201,13 +62,14 @@ class ContentAnalyzer {
         return words.slice(0, 45).join(' ') + (words.length > 45 ? '...' : '');
       }
     }
-
-    // fallback: أول 40 كلمة
     const words = cleaned.split(/\s+/);
     return words.slice(0, 40).join(' ') + (words.length > 40 ? '...' : '');
   }
 
   _getSourceTrust(sourceName) {
+    const SourceRegistry = require('./source-registry');
+    const entry = SourceRegistry.findByName(sourceName);
+    if (entry && entry.reliability_score) return entry.reliability_score;
     const trustMap = {
       'وزارة التربية الوطنية': 0.95,
       'وزارة التربية': 0.95,
@@ -232,7 +94,6 @@ class ContentAnalyzer {
 
     const body = data.body || '';
 
-    // 1. فحص التكرار
     const dupCheck = this._detectDuplicate(body, data.title);
     if (dupCheck.isDuplicate) {
       db.rawData.update(rawDataId, { status: 'processed' });
@@ -241,44 +102,48 @@ class ContentAnalyzer {
         decision_type: 'duplicate_rejected',
         input_data: JSON.stringify({ raw_id: rawDataId }),
         output_data: JSON.stringify(dupCheck),
-        model_version: 'analyzer-v2',
+        model_version: 'classifier-v1',
         confidence: dupCheck.similarity / 100,
         human_reviewed: 0,
       });
       return { duplicate: true, ...dupCheck };
     }
 
-    // 2. تصنيف المحتوى
-    const classification = this.classify(body);
+    // 1. Classify using new 9-category classifier
+    const classification = classifier.classify(body);
 
-    // 3. تدقيق الحقائق
-    const factCheck = this.factCheck(data);
+    // 2. Fact validation using new FactValidator
+    const factCheck = factValidator.validate(
+      { body, source_name: data.source, source_url: data.source_url, event_date: data.event_date, title: data.title },
+      { rawId: rawDataId }
+    );
 
-    // 4. كشف الإلحاح (عاجل/هام)
+    // 3. Urgency detection
     const urgency = this._detectUrgency(body);
 
-    // 5. ثقة المصدر
+    // 4. Source trust (from registry or fallback)
     const sourceTrust = this._getSourceTrust(data.source);
 
-    // 6. النتيجة الإجمالية (وزن متوازن)
+    // 5. Overall weighted score
     const overall = Math.round(
-      (classification.confidence * 0.25 +
-       factCheck.score * 0.35 +
+      (classification.confidence * 0.20 +
+       factCheck.score * 0.30 +
        sourceTrust * 0.25 +
-       urgency * 0.15) * 100
+       urgency * 0.15 +
+       (factCheck.passed ? 0.10 : 0)) * 100
     ) / 100;
 
-    // 7. استخراج الملخص
+    // 6. Summary
     const summary = this._extractSummary(body);
 
-    // 8. تحديد الحالة بناءً على الثقة الإجمالية
+    // 7. Status based on overall
     let status;
-    if (overall >= 0.8) status = 'draft'; // يمكن نشره تلقائيًا
-    else if (overall >= 0.5) status = 'review'; // بحاجة مراجعة
-    else if (overall >= 0.3) status = 'review'; // مراجعة مع تدقيق إضافي
+    if (overall >= 0.8) status = 'draft';
+    else if (overall >= 0.5) status = 'review';
+    else if (overall >= 0.3) status = 'review';
     else status = 'rejected';
 
-    // 9. تحديد مستوى الأهمية
+    // 8. Importance
     let importance;
     if (urgency >= 0.7 || (factCheck.score >= 0.8 && sourceTrust >= 0.8)) importance = 'high';
     else if (overall >= 0.5) importance = 'normal';
@@ -312,14 +177,22 @@ class ContentAnalyzer {
       input_data: JSON.stringify({ text_sample: body.slice(0, 100) }),
       output_data: JSON.stringify({
         category: classification.category,
+        category_label: classification.label,
         confidence: classification.confidence,
-        factCheck: factCheck,
+        per_category_scores: classification.scores,
+        factCheck: {
+          score: factCheck.score,
+          passed: factCheck.passed,
+          verdict: factCheck.verdict,
+          reasons: factCheck.reasons,
+          crossSourceDuplicates: factCheck.crossSourceDuplicates,
+        },
         urgency: urgency,
         importance,
         duplicate_check: dupCheck,
         overall: overall,
       }),
-      model_version: 'analyzer-v2',
+      model_version: 'classifier-v1',
       confidence: overall,
       human_reviewed: 0,
     });

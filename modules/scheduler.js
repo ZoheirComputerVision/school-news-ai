@@ -39,14 +39,19 @@ class Scheduler {
   }
 
   async runAnalyzer() {
-    console.log('[Scheduler] تشغيل مهمة التحليل...');
+    console.log('[Scheduler] تشغيل مهمة التحليل (المصنف 9 فئات)...');
     try {
       const pending = db.rawData.find(r => r.status === 'pending');
       const analyzer = require('./analyzer');
+      const EditorialClassifier = require('./classifier');
+      const classifier = new EditorialClassifier();
       for (const item of pending.slice(0, 5)) {
         try {
           const result = await analyzer.analyzeRawData(item.id);
-          if (result) console.log(`  ✓ تحليل #${item.id}: ${result.classification.category} (${result.overall})`);
+          if (result) {
+            const label = classifier.getCategoryLabel(result.classification.category);
+            console.log(`  ✓ تحليل #${item.id}: ${label} (ثقة ${Math.round(result.classification.confidence * 100)}%)`);
+          }
         } catch (e) { console.error(`  ✗ فشل تحليل #${item.id}:`, e.message); }
       }
       console.log(`[Scheduler] ✓ تم تحليل ${Math.min(pending.length, 5)} عنصر`);
@@ -56,17 +61,18 @@ class Scheduler {
   async runPublisher() {
     console.log('[Scheduler] تشغيل مهمة النشر...');
     try {
-      const drafts = articles.findDraftsForPublish();
-      const writer = require('./writer');
       const publisher = require('./publisher');
-      for (const draft of drafts.slice(0, 3)) {
+      const queue = publisher.getQueue();
+      const candidates = queue.filter(c => c.status === 'draft' || c.overall_score >= 0.7);
+      for (const item of candidates.slice(0, 3)) {
         try {
-          await writer.generateForContent(draft.id);
-          const result = await publisher.publish(draft.id);
-          console.log(`  ${result.success ? '✓' : '○'} نشر #${draft.id}: ${result.message}`);
-        } catch (e) { console.error(`  ✗ فشل نشر #${draft.id}:`, e.message); }
+          const writer = require('./writer');
+          if (!item.writer_version) await writer.generateForContent(item.id);
+          const result = await publisher.publish(item.id);
+          console.log(`  ${result.success ? '✓' : '○'} نشر #${item.id}: ${result.message}`);
+        } catch (e) { console.error(`  ✗ فشل نشر #${item.id}:`, e.message); }
       }
-      console.log(`[Scheduler] ✓ معالجة ${Math.min(drafts.length, 3)} مسودة`);
+      console.log(`[Scheduler] ✓ معالجة ${Math.min(candidates.length, 3)} عنصر من قائمة الانتظار`);
     } catch (e) { console.error('[Scheduler] ✗ فشل النشر:', e.message); }
   }
 

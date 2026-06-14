@@ -11,25 +11,27 @@
 | UUID | uuid | 9.0.0 |
 
 ## VERSION
-**Current:** v2.2.0  
+**Current:** v2.3.0  
 **Last updated:** 2026-06-14
 
-## SYSTEM_FLOW
+## SYSTEM_FLOW (Phase 2C)
 ```
 [Boot] → server.js → mount routes → init modules → start cron
                           ↓
                 JSON DB ← Source Registry (SQLite) ← collector (per-source)
                           ↓           ↑              ├── Facebook Graph API
-                analyzer (15min) → classification    ├── RSS/Atom
-                          ↓        + fact-check      ├── Web Scraping
-                writer → AI article generation       └── Manual Entry
-                          ↓              (via Source Registry → ScraperFactory)
-                publisher (10min) → quality check
+                EditorialClassifier (15min)          ├── RSS/Atom
+                          ↓        + 9 categories   ├── Web Scraping
+                FactValidator (source rep)           └── Manual Entry
+                          ↓        + cross-dup           (via Source Registry → ScraperFactory)
+                Writer → SEO + per-category template
                           ↓         + scorer + dedup + normalizer
-                archiver (6hrs) → timeline + stats
+                Publisher → Queue → Review Workflow
+                          ↓         + governance logging
+                Archiver (6hrs) → timeline + stats
                           ↓
                 public/ ← static HTML + newspaper.css (navy+gold identity)
-                admin/  ← dashboard + review + logs + settings + collector monitor
+                admin/  ← dashboard + review + logs + settings + governance
 ```
 
 ## ROUTES
@@ -53,17 +55,18 @@
 ## CURRENT SECTIONS (12 قسم تحريري)
 | القسم | المعرف | الصفحة | الحالة |
 |-------|--------|--------|--------|
-| الأخبار | `news` | `news.html` | ✅ |
-| النشاطات | `activity` | `activities.html` | ✅ |
-| الإعلانات | `announcement` | `announcements.html` | ✅ |
-| الرياضة | `sports` | `section.html?s=sports` | ✅ |
-| الثقافة | `culture` | `section.html?s=culture` | ✅ |
+| فعاليات | `event` | `events.html` | ✅ |
+| أخبار وطنية | `national` | `news.html` | ✅ |
+| أخبار جهوية | `regional-news` | `regional.html` | ✅ |
+| مجتمع | `society` | `section.html?s=society` | ✅ |
+| ثقافة وفن | `culture` | `section.html?s=culture` | ✅ |
+| رياضة | `sports` | `section.html?s=sports` | ✅ |
+| تنمية وتطوير | `development` | `section.html?s=development` | ✅ |
+| شخصيات وقصص | `faces-stories` | `section.html?s=faces` | ✅ |
+| إعلانات | `advertisements` | `announcements.html` | ✅ |
 | العلوم | `science` | `section.html?s=science` | ✅ |
 | الأدب | `literature` | `section.html?s=literature` | ✅ |
-| الرأي | `opinion` | `section.html?s=opinion` | ✅ |
 | التوجيه | `guidance` | `section.html?s=guidance` | ✅ |
-| الطلبة | `students` | `section.html?s=students` | ✅ |
-| التربية | `education` | `section.html?s=education` | ✅ |
 | غير مصنف | `uncategorized` | — | ✅ |
 
 ## STATIC PAGES
@@ -85,6 +88,7 @@
 | `index.html` | تسجيل الدخول |
 | `dashboard.html` | لوحة التحكم + إدارة المحتوى |
 | `review.html` | مراجعة المحتوى والموافقة |
+| `governance.html` | حوكمة AI — سلسلة القرارات والثقة |
 | `logs.html` | سجلات AI |
 | `settings.html` | إعدادات النظام |
 
@@ -115,6 +119,15 @@
   - Fields: source_id, name, type, region, municipality, category, status, reliability_score, sync_frequency
   - API: register, getActive, getByType, getByRegion, getByCategory, markSync, markError
   - Collectors register through Source Registry only — no hardcoded sources
+- [x] **Phase 2C: Editorial Intelligence Layer**
+  - [x] `modules/classifier.js` — 9-category editorial classifier with confidence scoring
+  - [x] `modules/fact-validator.js` — Source reputation + cross-source + date validation
+  - [x] `modules/analyzer.js` — Rewritten pipeline using new Classifier + FactValidator
+  - [x] `modules/writer.js` — Rewritten with SEO metadata generation, per-category templates
+  - [x] `modules/publisher.js` — Review workflow state machine + priority queue + governance logging
+  - [x] `routes/admin.js` — Governance API endpoints
+  - [x] `admin/governance.html` — Governance dashboard with decision chain viewer
+  - [x] `public/js/api.js` — Governance API client methods
 
 ## ORPHANS & PENDING
 | البند | الحالة | الأولوية |
@@ -124,7 +137,7 @@
 | i18n (فرنسية/إنجليزية) | غير موجودة | منخفضة |
 | HTTPS/SSL | غير مضبوط | عالية |
 | Facebook Graph API (token حقيقي) | غير متصل | متوسطة |
-| Real AI/ML classifier | غير مطبق | عالية |
+| ML classifier (AraBERT or API) | غير مطبق | عالية |
 | LLM writer (GPT/Gemini) | غير مطبق | عالية |
 | SEO (JSON-LD, sitemap.xml, meta) | غير مطبق | متوسطة |
 | Caching layer (Redis/LRU) | غير مطبق | منخفضة |

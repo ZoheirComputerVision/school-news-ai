@@ -133,6 +133,17 @@ class SourceRegistry {
       last_sync: s.last_sync,
     })).sort((a, b) => b.reliability_score - a.reliability_score);
   }
+
+  findByName(name) {
+    if (!name) return null;
+    const q = name.toLowerCase();
+    return this.repo.findOne(s => (s.name || '').toLowerCase().includes(q)) || null;
+  }
+
+  findByUrl(url) {
+    if (!url) return null;
+    return this.repo.findOne(s => s.url && url.includes(s.url)) || null;
+  }
 }
 
 module.exports = new SourceRegistry();
