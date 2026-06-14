@@ -11,25 +11,25 @@
 | UUID | uuid | 9.0.0 |
 
 ## VERSION
-**Current:** v1.0.0  
-**Last updated:** 2026-06-13
+**Current:** v2.1.0  
+**Last updated:** 2026-06-14
 
 ## SYSTEM_FLOW
 ```
 [Boot] → server.js → mount routes → init modules → start cron
                           ↓
-               JSON DB ← collector (30min) → [Facebook API / Web Scraping / Manual Entry]
+                JSON DB ← collector (30min) → ScraperFactory
+                          ↓                         ├── Facebook Graph API
+                analyzer (15min) → classification   ├── RSS/Atom
+                          ↓        + fact-check     ├── Web Scraping
+                writer → AI article generation      └── Manual Entry
+                          ↓                (lib/scraper/ + modules/dedup.js
+                publisher (10min) → quality check    + modules/normalizer.js
+                          ↓         + scorer)       + modules/scorer.js
+                archiver (6hrs) → timeline + stats   + modules/monitor.js
                           ↓
-               analyzer (15min) → classification + fact-check + duplicate detection
-                          ↓
-               writer → AI article generation (templates per category)
-                          ↓
-               publisher (10min) → quality check → auto-publish / pending review / reject
-                          ↓
-               archiver (6hrs) → timeline + stats + JSON export
-                          ↓
-               public/ ← static HTML + client-side JS
-               admin/  ← dashboard + review + logs + settings
+                public/ ← static HTML + newspaper.css (navy+gold identity)
+                admin/  ← dashboard + review + logs + settings + collector monitor
 ```
 
 ## ROUTES
@@ -50,34 +50,48 @@
 | `GET /api/search` | بحث في المحتوى |
 | `POST /api/admin/auth` | مصادقة المدير |
 
-## CURRENT SECTIONS
-| القسم | الحالة |
-|-------|--------|
-| أخبار (news) | ✅ يعمل |
-| نشاطات (activity) | ✅ يعمل |
-| إعلانات (announcement) | ✅ يعمل |
-| غير مصنف (uncategorized) | ✅ يعمل |
+## CURRENT SECTIONS (12 قسم تحريري)
+| القسم | المعرف | الصفحة | الحالة |
+|-------|--------|--------|--------|
+| الأخبار | `news` | `news.html` | ✅ |
+| النشاطات | `activity` | `activities.html` | ✅ |
+| الإعلانات | `announcement` | `announcements.html` | ✅ |
+| الرياضة | `sports` | `section.html?s=sports` | ✅ |
+| الثقافة | `culture` | `section.html?s=culture` | ✅ |
+| العلوم | `science` | `section.html?s=science` | ✅ |
+| الأدب | `literature` | `section.html?s=literature` | ✅ |
+| الرأي | `opinion` | `section.html?s=opinion` | ✅ |
+| التوجيه | `guidance` | `section.html?s=guidance` | ✅ |
+| الطلبة | `students` | `section.html?s=students` | ✅ |
+| التربية | `education` | `section.html?s=education` | ✅ |
+| غير مصنف | `uncategorized` | — | ✅ |
 
-## REQUIRED SECTIONS (Not Yet Implemented)
-| القسم | الحالة |
-|-------|--------|
-| الافتتاحية | ❌ غير موجود |
-| حدث | ❌ غير موجود |
-| وطني | ❌ غير موجود |
-| أخبار المنطقة | ❌ غير موجود |
-| مجتمع | ❌ غير موجود |
-| ثقافة | ❌ غير موجود |
-| رياضة | ❌ غير موجود |
-| التنمية | ❌ غير موجود |
-| وجوه وعبر | ❌ غير موجود |
-| إعلانات (مستقل) | ❌ غير موجود |
-| الأرشفة الزمنية | موجود جزئياً |
-| الأرشيف | موجود جزئياً |
+## STATIC PAGES
+| الصفحة | الوظيفة |
+|--------|---------|
+| `index.html` | الصفحة الرئيسية (ماستهيد + قصة مميزة + شبكة تحريرية + أرشيف + إعلانات) |
+| `article.html` | عرض المقال بتصميم الصحيفة |
+| `section.html` | صفحة أقسام ديناميكية |
+| `news.html` | الأخبار |
+| `activities.html` | النشاطات المدرسية |
+| `announcements.html` | الإعلانات |
+| `timeline.html` | الأرشفة الزمنية |
+| `archive.html` | الأرشيف والإحصائيات |
+| `media.html` | معرض الوسائط (يستخدم style.css) |
+
+## ADMIN PAGES
+| الصفحة | الوظيفة |
+|--------|---------|
+| `index.html` | تسجيل الدخول |
+| `dashboard.html` | لوحة التحكم + إدارة المحتوى |
+| `review.html` | مراجعة المحتوى والموافقة |
+| `logs.html` | سجلات AI |
+| `settings.html` | إعدادات النظام |
 
 ## COMPLETED MILESTONES
 - [x] Express server + JSON DB
 - [x] AI pipeline: collector → analyzer → writer → publisher → archiver
-- [x] Public SPA-like frontend (8 HTML pages + CSS + JS)
+- [x] Public SPA-like frontend (9 HTML pages + CSS + JS)
 - [x] Admin panel (dashboard, review, logs, settings)
 - [x] Cron scheduler (auto collect/analyze/publish)
 - [x] Security: helmet + CORS + admin auth
@@ -85,18 +99,29 @@
 - [x] Error display inside modal
 - [x] Request timeout (30s AbortController)
 - [x] Database error propagation (no swallowing)
+- [x] DAL + Repository layer (BaseRepository, ArticleRepository, SettingsRepository, ArchiveRepository)
+- [x] SQLite migration + cutover (62/62 records, 9/9 tables)
+- [x] Local Voice rebranding → "الصوت المحلي"
+- [x] Neo Vintage UI → newspaper.css + newspaper.js
+- [x] 12 editorial sections (news, activity, announcement, sports, culture, science, literature, opinion, guidance, students, education)
+- [x] Real Content Acquisition Layer (ScraperFactory: Facebook, RSS, Web)
+- [x] Duplicate detection engine (hash/URL/title similarity)
+- [x] Content normalization pipeline
+- [x] Source scoring system
+- [x] Collector monitoring dashboard (3 admin API endpoints)
+- [x] Visual reconciliation: navy+gold identity unified across all pages
+- [x] DESIGN_GOVERNANCE.md — design freeze document
 
 ## ORPHANS & PENDING
 | البند | الحالة | الأولوية |
 |-------|--------|----------|
-| قاعدة بيانات SQLite جاهزة (غير مستعملة) | قائمة | عالية |
-| اختبارات (unit/integration) | غير موجودة | متوسطة |
+| قاعدة بيانات SQLite جاهزة (غير مستعملة) | قائمة | متوسطة |
+| اختبارات (unit/integration) | غير موجودة | عالية |
 | i18n (فرنسية/إنجليزية) | غير موجودة | منخفضة |
 | HTTPS/SSL | غير مضبوط | عالية |
-| Facebook Graph API (حقيقي) | غير متصل | عالية |
-| Web Scraping (حقيقي) | غير متصل | عالية |
-| CSRF protection | غير موجود | عالية |
-| Rate Limiting | غير موجود | متوسطة |
+| Facebook Graph API (token حقيقي) | غير متصل | متوسطة |
+| Real AI/ML classifier | غير مطبق | عالية |
+| LLM writer (GPT/Gemini) | غير مطبق | عالية |
+| SEO (JSON-LD, sitemap.xml, meta) | غير مطبق | متوسطة |
+| Caching layer (Redis/LRU) | غير مطبق | منخفضة |
 | Multi-tenancy | غير موجود | منخفضة |
-| Neo Vintage Newspaper Design | غير مطبق | عالية |
-| Real AI/ML pipeline | غير مطبق | عالية |

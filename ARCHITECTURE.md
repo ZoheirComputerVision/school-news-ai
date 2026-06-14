@@ -2,11 +2,12 @@
 
 ## 1. Overview
 
-**Project:** school-news-ai — الجريدة المدرسية الذكية  
-**Type:** SaaS Platform (single-tenant حالياً)  
-**School:** ثانوية المجاهد خليل محمد المدعو يوسف - عين كرمس (تيارت)  
-**Data Sources:** Facebook Graph API (غير فعال), Web Scraping (غير فعال), Manual Entry  
-**Target Design:** Neo Vintage Newspaper — أبيض وأسود عالي التباين
+- **Project:** school-news-ai — الصوت المحلي
+- **Type:** SaaS Platform (single-tenant حالياً)
+- **School:** ثانوية المجاهد خليل محمد المدعو يوسف - عين كرمس (تيارت)
+- **Data Sources:** Facebook Graph API, RSS/Atom, Web Scraping, Manual Entry
+- **Design Identity:** الصوت المحلي — أزرق ملكي وذهبي
+- **Design Governance:** [`DESIGN_GOVERNANCE.md`](./DESIGN_GOVERNANCE.md) — وثيقة مُلزمة لجميع التطوير المستقبلي
 
 ## 2. System Layers
 
@@ -47,9 +48,10 @@
 ```
 External Sources → Collector → raw_data (JSON) → pending status
      ↓                  ↓
-  Demo Data         Facebook API (disabled)
-  (active)          Ministry Scraper (disabled)
-                    Manual Entry (working)
+  Facebook API      ScraperFactory → Fetcher → Normalizer → DedupEngine
+  RSS/Atom          (lib/scraper/)  (axios)    (modules/)   (modules/)
+  Web Scraping
+  Manual Entry
 ```
 
 ### 3.2 Analysis Flow
@@ -116,11 +118,11 @@ processed_content (draft/review) → Publisher
 ## 7. Key Limitations
 
 - **JSON DB:** Not safe for concurrent writes (multiple cron jobs)
-- **Demo Data:** No real external data sources connected
+- **Demo Fallback:** Real sources available but require credentials (FACEBOOK_ACCESS_TOKEN)
 - **Rule-based AI:** Not actual machine learning
 - **Single-tenant:** One school only
 - **No tests:** Zero test coverage
-- **Hardcoded credentials:** In source code
+- **Design Governance:** DESIGN_GOVERNANCE.md is mandatory reading for all future development
 
 ## 8. Deployment
 

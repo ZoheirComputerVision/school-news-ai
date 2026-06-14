@@ -1,5 +1,28 @@
 # CHANGELOG.md — سجل التغييرات
 
+## [2.2.0] — 2026-06-14 — Phase 2A.2: Design Governance Freeze
+
+### Added
+- **`DESIGN_GOVERNANCE.md`** — دستور التصميم الملزم لمنصة الصوت المحلي
+  - Brand identity: اسم المنصة، الشعار، المدرسة، الفريق
+  - Typography: Tajawal (UI), Noto Naskh Arabic (تحريري), Noto Kufi Arabic (عناوين)
+  - Color system: أزرق ملكي (`#1a3a5c`)، أزرق غامق (`#0f2440`)، ذهبي (`#c8a951`)
+  - UI rules: زوايا دائرية 8px، ظلال، مسافات، تنقل
+  - Editorial rules: 12 قسماً، تخطيط الجريدة، أرشيف، إعلانات
+  - Restrictions: قائمة بالممنوع والمسموح في المراحل المستقبلية
+  - Governance process: آلية طلب تغيير التصميم
+
+### Changed
+- **`ARCHITECTURE.md`** — تحديث ليعكس الهوية الجديدة ويربط بـ DESIGN_GOVERNANCE.md
+- **`PROJECT_MAP.md`** — تحديث كامل: version v2.1.0، 12 قسماً، milestones جديدة، pending items محدثة
+
+### Frozen (Design Lock)
+- ❌ لا يُستبدل نظام الخطوط (Tajawal / Noto Naskh Arabic / Noto Kufi Arabic)
+- ❌ لا يُستبدل نظام الألوان (كحلي/ذهبي/كريمي)
+- ❌ لا يُستبدل هيكل التنقل (شريط ثابت مع قوائم منسدلة)
+- ❌ لا يُستبدل تخطيط الجريدة (ماستهيد، 3 أعمدة، قصة مميزة)
+- ❌ لا تُستبدل تجربة الأرشيف (خط زمني عمودي + إحصائيات)
+
 ## [2.1.0] — 2026-06-14 — Phase 2B: Real Content Acquisition Layer
 
 ### Added
