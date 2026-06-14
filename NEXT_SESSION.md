@@ -61,9 +61,23 @@
 - [x] **فلترة**: جميع نقاط API تفلتر حسب tenant_id
 - [x] **ترحيل**: 11 مقالة → منصة تيارت
 
+## ✅ Phase 3B Complete — Tenant Administration & White Label Platform
+
+### المنجز:
+- [x] **`modules/tenant/branding-manager.js`** — Branding Manager (logo, favicon, homepage, footer, about, social)
+- [x] **`modules/tenant/user-manager.js`** — User Manager (4 roles, bcrypt, per-tenant JWT)
+- [x] **`modules/tenant/pages-manager.js`** — Pages Manager (about, contact, editorial-policy, privacy-policy)
+- [x] **`modules/tenant/analytics.js`** — Analytics (content, ads, editorial, engagement)
+- [x] **`middleware/authorize.js`** — Role & tenant access middleware
+- [x] **`routes/tenant-admin.js`** — 14 endpoints under `/api/tenant/`
+- [x] **`modules/tenant/migrate.js`** — Updated for 3 new tables + default super_admin seed
+- [x] **`admin/saas-control-center.html`** — 3 new tabs (Branding, Users, Analytics)
+- [x] **جداول جديدة**: tenant_settings, tenant_users, tenant_pages
+- [x] **صلاحيات**: per-tenant JWT with role-based access (super_admin, tenant_admin, editor, reviewer)
+
 ---
 
-## المهمة التالية: Phase 3B — تحسينات متقدمة
+## المهمة التالية: Phase 4 — تحسينات متقدمة
 
 ### الأولوية: 🔴 عالية
 
@@ -74,19 +88,21 @@
 | `modules/writer.js` | LLM integration (GPT/Gemini) |
 | `modules/fact-validator.js` | التحقق الخارجي من الحقائق (APIs) |
 | `public/` | تحسينات SEO متقدمة: sitemap.xml |
-| `middleware/auth.js` | صلاحيات لكل منصة (per-tenant JWT) |
 | `config.js` | API keys للذكاء الاصطناعي |
+| | Custom domain support per tenant |
 
 ### أولويات للجلسة القادمة:
-1. **صلاحيات المنصات**: JWT لكل منصة (admin/tiaret, admin/oran, ...)
-2. تفعيل SQLite: إضافة `DB_TYPE=sqlite` إلى `.env`
-3. ربط Facebook Graph API الحقيقي: إضافة `FACEBOOK_ACCESS_TOKEN` إلى `.env`
+1. **ML Classifier**: استبدال التصنيف النصي بـ AraBERT أو API خارجي
+2. **LLM Writer**: دمج GPT/Gemini للكتابة التلقائية
+3. **Fact Validator خارجي**: التحقق من الحقائق عبر APIs
 4. إنشاء sitemap.xml لتحسين SEO
 5. تحسين أداء HomepageSelector مع caching
+6. **نطاقات مخصصة**: دعم نطاق لكل منصة (tiaret.soutmahali.dz, oran.soutmahali.dz)
 
 ### ملاحظات هامة:
 - **`DESIGN_GOVERNANCE.md`** — وثيقة ملزمة، لا تُغيّر الألوان/الخطوط/التخطيط
-- **Header الجديد** يحافظ على شعار "الصوت المحلي" كما هو — بدون تغيير
 - **المنصات** تدعم المسارات: `/tiaret/article/123`, `/oran/article/456`
 - **بدون مسار منصة**: يعمل كالمعتاد مع منصة تيارت الافتراضية
 - **مركز التحكم SaaS** متاح في `/admin/saas-control-center.html`
+- **تسجيل الدخول للمنصات**: POST `/api/tenant/auth` مع `{ tenant_id, username, password }`
+- **API العامة للصفحات**: GET `/api/tenant/public/:slug/pages/:type`

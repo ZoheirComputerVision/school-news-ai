@@ -11,6 +11,7 @@ const { apiLimiter, csrfProtection } = require('./middleware/validate');
 const editorialRoutes = require('./routes/editorial');
 const adRoutes = require('./routes/ads');
 const tenantRoutes = require('./routes/tenants');
+const tenantAdminRoutes = require('./routes/tenant-admin');
 const { tenantMiddleware } = require('./middleware/tenant');
 const { ensureEditorialTables } = require('./modules/editorial/migrate');
 const { ensureAdTables } = require('./modules/ads/migrate');
@@ -41,6 +42,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/editorial', editorialRoutes);
 app.use('/api/ads', adRoutes);
 app.use('/api/tenants', tenantRoutes);
+app.use('/api/tenant', tenantAdminRoutes);
 
 app.get('/', (req, res) => res.sendFile(path.join(config.PUBLIC_DIR, 'index.html')));
 

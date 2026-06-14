@@ -5,11 +5,34 @@ async function ensureTenantTables() {
   try {
     db.adapter.find('tenants', () => true);
     db.adapter.find('tenant_config', () => true);
+    db.adapter.find('tenant_settings', () => true);
+    db.adapter.find('tenant_users', () => true);
+    db.adapter.find('tenant_pages', () => true);
     const registry = new TenantRegistry();
     registry.seedDefaults();
-    console.log('  ✓ Tenant JSON tables ready');
+    seedDefaultSuperAdmin();
+    console.log('  ✓ Tenant JSON tables ready (registry, settings, users, pages)');
   } catch (e) {
     console.error('  ✗ Failed to verify tenant tables:', e.message);
+  }
+}
+
+function seedDefaultSuperAdmin() {
+  const existing = db.adapter.find('tenant_users', u => u.username === 'superadmin' && u.role === 'super_admin');
+  if (!existing.length) {
+    const bcrypt = require('bcryptjs');
+    const hash = bcrypt.hashSync('admin123', 10);
+    db.adapter.create('tenant_users', {
+      tenant_id: 1,
+      username: 'superadmin',
+      password_hash: hash,
+      role: 'super_admin',
+      display_name: 'المشرف العام',
+      active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+    console.log('  ✓ Seeded default super_admin user');
   }
 }
 

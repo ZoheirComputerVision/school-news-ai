@@ -91,18 +91,36 @@
 | 8 | [✓] SaaS Control Center admin UI | ✅ تم |
 | 9 | [✓] Tenant API endpoints (10 endpoints) | ✅ تم |
 
-## Phase 5: 🏢 SaaS Platform (الأيام 22-30)
+## Phase 3B: 🏢 Tenant Administration & White Label Platform
 
 | # | المهمة | الحالة |
 |---|--------|--------|
-| 1 | [ ] Multi-tenant admin credentials (per-tenant JWT) | ⏳ |
-| 2 | [ ] Custom domain support | ⏳ |
-| 3 | [ ] Billing & subscriptions | ⏳ |
-| 4 | [ ] Analytics dashboard per school | ⏳ |
-| 5 | [ ] API marketplace | ⏳ |
-| 6 | [ ] User management (admin/editor/viewer) | ⏳ |
+| 1 | [✓] Branding Manager (logo, favicon, homepage title, footer, about, social) | ✅ تم |
+| 2 | [✓] Theme Settings (structured fields, no arbitrary CSS) | ✅ تم |
+| 3 | [✓] Tenant Public Pages (about, contact, editorial-policy, privacy-policy) | ✅ تم |
+| 4 | [✓] Tenant Administrator Roles (super_admin, tenant_admin, editor, reviewer) | ✅ تم |
+| 5 | [✓] Tenant-scoped JWT authentication | ✅ تم |
+| 6 | [✓] Per-tenant role authorization middleware | ✅ تم |
+| 7 | [✓] Tenant Dashboard (extended SaaS Control Center: branding, users, analytics) | ✅ تم |
+| 8 | [✓] Tenant Analytics (content, ads, editorial, engagement) | ✅ تم |
+| 9 | [✓] New DB tables: tenant_settings, tenant_users, tenant_pages | ✅ تم |
+| 10 | [✓] 14 new tenant admin API endpoints | ✅ تم |
 
-## Phase 6: ✨ تحسينات واستدامة (الأيام 31+)
+## Phase 4: 📈 تحسينات متقدمة (الأيام القادمة)
+
+| # | المهمة | الحالة |
+|---|--------|--------|
+| 1 | [ ] ML classifier (AraBERT or API) | ⏳ |
+| 2 | [ ] 12-section classification model | ⏳ |
+| 3 | [ ] Real fact-checker (external verification) | ⏳ |
+| 4 | [ ] LLM writer per section style | ⏳ |
+| 5 | [ ] Auto image selection + caption | ⏳ |
+| 6 | [ ] Custom domain support | ⏳ |
+| 7 | [ ] Billing & subscriptions | ⏳ |
+| 8 | [ ] API marketplace | ⏳ |
+| 9 | [ ] Caching layer (Redis or LRU) | ⏳ |
+
+## Phase 5: ✨ تحسينات واستدامة (الأيام 31+)
 
 | # | المهمة | الحالة |
 |---|--------|--------|

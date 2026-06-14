@@ -74,6 +74,9 @@ tr:hover td { background:var(--bg); }
     <button class="tab active" data-tab="tab-tenants">🏛️ المنصات</button>
     <button class="tab" data-tab="tab-new">➕ منصة جديدة</button>
     <button class="tab" data-tab="tab-stats">📊 إحصائيات</button>
+    <button class="tab" data-tab="tab-branding">🎨 العلامة التجارية</button>
+    <button class="tab" data-tab="tab-users">👥 المستخدمون</button>
+    <button class="tab" data-tab="tab-analytics">📈 التحليلات</button>
   </div>
 
   <!-- Tab: Tenants -->
@@ -101,7 +104,87 @@ tr:hover td { background:var(--bg); }
     <h3 style="font-size:0.95rem;color:var(--primary);margin:15px 0 8px;">توزيع المناطق</h3>
     <table><thead><tr><th>المنطقة</th><th>عدد المنصات</th></tr></thead><tbody id="region-tbody"></tbody></table>
   </div>
+
+  <!-- Tab: Branding -->
+  <div class="panel" id="tab-branding">
+    <div class="form-group"><label>اختر المنصة</label>
+      <select id="branding-tenant-select" onchange="loadBranding()"><option value="">-- اختر منصة --</option></select>
+    </div>
+    <form id="branding-form" style="margin-top:15px;">
+      <div class="form-row">
+        <div class="form-group"><label>رابط الشعار (URL)</label><input type="url" id="b-logo_url"></div>
+        <div class="form-group"><label>رابط الأيقونة (favicon)</label><input type="url" id="b-favicon_url"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>عنوان الصفحة الرئيسية</label><input type="text" id="b-homepage_title"></div>
+        <div class="form-group"><label>معلومات التذييل</label><input type="text" id="b-footer_info"></div>
+      </div>
+      <div class="form-group"><label>وصف التحرير</label><input type="text" id="b-editorial_description"></div>
+      <div class="form-group"><label>نص صفحة "عن المنصة"</label><textarea id="b-about_text" rows="3" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-family:Tajawal,sans-serif;font-size:0.85rem;"></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>البريد الإلكتروني للاتصال</label><input type="email" id="b-contact_email"></div>
+        <div class="form-group"><label>رقم الهاتف</label><input type="text" id="b-contact_phone"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>فيسبوك</label><input type="url" id="b-facebook_url"></div>
+        <div class="form-group"><label>تويتر</label><input type="url" id="b-twitter_url"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>إنستغرام</label><input type="url" id="b-instagram_url"></div>
+        <div class="form-group"><label>يوتيوب</label><input type="url" id="b-youtube_url"></div>
+      </div>
+      <button type="submit" class="btn btn-success mt-10">💾 حفظ العلامة التجارية</button>
+    </form>
+  </div>
+
+  <!-- Tab: Users -->
+  <div class="panel" id="tab-users">
+    <div class="form-group"><label>اختر المنصة</label>
+      <select id="users-tenant-select" onchange="loadUsers()"><option value="">-- اختر منصة --</option></select>
+    </div>
+    <button class="btn btn-success mt-10" onclick="openUserModal()">➕ إضافة مستخدم</button>
+    <table style="margin-top:12px;"><thead>
+      <tr><th>#</th><th>اسم المستخدم</th><th>الاسم المعروض</th><th>الدور</th><th>الحالة</th><th>تاريخ الإنشاء</th><th></th></tr>
+    </thead><tbody id="users-tbody"></tbody></table>
+  </div>
+
+  <!-- Tab: Analytics -->
+  <div class="panel" id="tab-analytics">
+    <div class="form-group"><label>اختر المنصة</label>
+      <select id="analytics-tenant-select" onchange="loadAnalytics()"><option value="">-- اختر منصة --</option></select>
+    </div>
+    <div id="analytics-content" style="margin-top:15px;">
+      <div class="cards" id="analytics-cards"></div>
+      <h3 style="font-size:0.95rem;color:var(--primary);margin:15px 0 8px;">المحتوى</h3>
+      <table><thead><tr><th>المؤشر</th><th>القيمة</th></tr></thead><tbody id="analytics-content-tbody"></tbody></table>
+      <h3 style="font-size:0.95rem;color:var(--primary);margin:15px 0 8px;">الإعلانات</h3>
+      <table><thead><tr><th>المؤشر</th><th>القيمة</th></tr></thead><tbody id="analytics-ads-tbody"></tbody></table>
+      <h3 style="font-size:0.95rem;color:var(--primary);margin:15px 0 8px;">التحرير</h3>
+      <table><thead><tr><th>المؤشر</th><th>القيمة</th></tr></thead><tbody id="analytics-editorial-tbody"></tbody></table>
+    </div>
+  </div>
 </div>
+
+<!-- User Modal -->
+<div class="modal" id="user-modal"><div class="modal-content">
+  <h2 id="user-modal-title">➕ إضافة مستخدم</h2>
+  <form id="user-form">
+    <div class="form-row">
+      <div class="form-group"><label>اسم المستخدم *</label><input type="text" id="u-username" required></div>
+      <div class="form-group"><label>الاسم المعروض</label><input type="text" id="u-display_name"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>كلمة المرور *</label><input type="password" id="u-password" required></div>
+      <div class="form-group"><label>الدور</label><select id="u-role">
+        <option value="tenant_admin">مدير المنصة</option>
+        <option value="editor">محرر</option>
+        <option value="reviewer">مراجع</option>
+      </select></div>
+    </div>
+    <button type="submit" class="btn btn-success mt-10">💾 حفظ المستخدم</button>
+    <button type="button" class="btn" onclick="closeUserModal()" style="margin-right:8px;">❌ إلغاء</button>
+  </form>
+</div></div>
 
 <!-- Tenant Config Modal -->
 <div class="modal" id="config-modal"><div class="modal-content">
@@ -282,6 +365,218 @@ document.querySelectorAll('.modal').forEach(m => {
 });
 
 loadAll();
+
+// ─── Tenant selector population ───
+
+async function populateTenantSelectors() {
+  try {
+    const data = await api('');
+    const tenants = data.tenants || [];
+    ['branding-tenant-select', 'users-tenant-select', 'analytics-tenant-select'].forEach(id => {
+      const sel = document.getElementById(id);
+      sel.innerHTML = '<option value="">-- اختر منصة --</option>' +
+        tenants.map(t => `<option value="${t.id}">${t.name} (${t.slug})</option>`).join('');
+    });
+  } catch {}
+}
+
+// ─── Branding ───
+
+async function loadBranding() {
+  const tenantId = document.getElementById('branding-tenant-select').value;
+  if (!tenantId) return;
+  try {
+    const data = await tenantApi(`/${tenantId}/branding`);
+    const b = data.branding || {};
+    ['logo_url','favicon_url','homepage_title','footer_info','editorial_description','about_text',
+     'contact_email','contact_phone','facebook_url','twitter_url','instagram_url','youtube_url'].forEach(f => {
+      document.getElementById('b-' + f).value = b[f] || '';
+    });
+  } catch (e) { alert('خطأ في تحميل العلامة التجارية: ' + e.message); }
+}
+
+document.getElementById('branding-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const tenantId = document.getElementById('branding-tenant-select').value;
+  if (!tenantId) return alert('الرجاء اختيار منصة');
+  try {
+    const body = {};
+    ['logo_url','favicon_url','homepage_title','footer_info','editorial_description','about_text',
+     'contact_email','contact_phone','facebook_url','twitter_url','instagram_url','youtube_url'].forEach(f => {
+      body[f] = document.getElementById('b-' + f).value;
+    });
+    await tenantApi(`/${tenantId}/branding`, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
+    alert('✅ تم حفظ العلامة التجارية');
+  } catch (e) { alert(e.message); }
+});
+
+// ─── Users ───
+
+let currentUserTenantId = null;
+let editingUserId = null;
+
+async function loadUsers() {
+  const tenantId = document.getElementById('users-tenant-select').value;
+  if (!tenantId) { document.getElementById('users-tbody').innerHTML = ''; return; }
+  currentUserTenantId = tenantId;
+  try {
+    const data = await tenantApi(`/${tenantId}/users`);
+    const users = data.users || [];
+    const tbody = document.getElementById('users-tbody');
+    if (!users.length) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--gray);padding:30px;">لا يوجد مستخدمون</td></tr>';
+      return;
+    }
+    tbody.innerHTML = users.map(u => `
+      <tr>
+        <td>${u.id}</td>
+        <td><strong>${u.username}</strong></td>
+        <td>${u.display_name || '—'}</td>
+        <td>${roleName(u.role)}</td>
+        <td><span class="badge ${u.active ? 'active' : 'inactive'}">${u.active ? 'نشط' : 'غير نشط'}</span></td>
+        <td style="font-size:0.75rem;">${u.created_at ? u.created_at.split('T')[0] : '—'}</td>
+        <td class="actions">
+          <button class="btn btn-sm btn-primary" onclick="editUser(${u.id})">✏️</button>
+          <button class="btn btn-sm ${u.active ? 'btn-warning' : 'btn-success'}" onclick="toggleUser(${u.id}, ${u.active ? 'false' : 'true'})">${u.active ? '⏸' : '▶'}</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch (e) { console.error('Users error:', e); }
+}
+
+function roleName(r) {
+  const map = { super_admin: 'مشرف عام', tenant_admin: 'مدير منصة', editor: 'محرر', reviewer: 'مراجع' };
+  return map[r] || r;
+}
+
+function openUserModal(user) {
+  editingUserId = user ? user.id : null;
+  document.getElementById('user-modal-title').textContent = user ? '✏️ تعديل المستخدم' : '➕ إضافة مستخدم';
+  document.getElementById('u-username').value = user ? user.username : '';
+  document.getElementById('u-display_name').value = user ? (user.display_name || '') : '';
+  document.getElementById('u-password').required = !user;
+  document.getElementById('u-password').value = '';
+  document.getElementById('u-role').value = user ? user.role : 'editor';
+  document.getElementById('user-modal').classList.add('open');
+}
+
+function closeUserModal() { document.getElementById('user-modal').classList.remove('open'); editingUserId = null; }
+
+async function editUser(id) {
+  try {
+    const data = await tenantApi(`/${currentUserTenantId}/users`);
+    const user = (data.users || []).find(u => u.id === id);
+    if (user) openUserModal(user);
+  } catch {}
+}
+
+async function toggleUser(id, active) {
+  try {
+    await tenantApi(`/${currentUserTenantId}/users/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ active: active === true }),
+    });
+    await loadUsers();
+  } catch (e) { alert(e.message); }
+}
+
+document.getElementById('user-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!currentUserTenantId) return;
+  try {
+    const body = {
+      username: document.getElementById('u-username').value,
+      display_name: document.getElementById('u-display_name').value,
+      password: document.getElementById('u-password').value,
+      role: document.getElementById('u-role').value,
+    };
+    if (editingUserId) {
+      await tenantApi(`/${currentUserTenantId}/users/${editingUserId}`, {
+        method: 'PUT',
+        body: JSON.stringify(body),
+      });
+    } else {
+      await tenantApi(`/${currentUserTenantId}/users`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      });
+    }
+    closeUserModal();
+    await loadUsers();
+    alert('✅ تم حفظ المستخدم');
+  } catch (e) { alert(e.message); }
+});
+
+// ─── Analytics ───
+
+async function loadAnalytics() {
+  const tenantId = document.getElementById('analytics-tenant-select').value;
+  if (!tenantId) { document.getElementById('analytics-cards').innerHTML = ''; document.getElementById('analytics-content-tbody').innerHTML = ''; document.getElementById('analytics-ads-tbody').innerHTML = ''; document.getElementById('analytics-editorial-tbody').innerHTML = ''; return; }
+  try {
+    const data = await tenantApi(`/${tenantId}/analytics`);
+    const a = data.analytics || {};
+    const c = a.content || {};
+    const ad = a.ads || {};
+    const ed = a.editorial || {};
+    const en = a.engagement || {};
+
+    document.getElementById('analytics-cards').innerHTML = `
+      <div class="card"><div class="num">${c.total}</div><div class="label">إجمالي المحتوى</div></div>
+      <div class="card"><div class="num">${c.published}</div><div class="label">منشور</div></div>
+      <div class="card"><div class="num">${c.total_views}</div><div class="label">إجمالي المشاهدات</div></div>
+      <div class="card"><div class="num">${c.avg_views_per_article}</div><div class="label">متوسط المشاهدات</div></div>
+      <div class="card"><div class="num">${ad.total_campaigns}</div><div class="label">الحملات</div></div>
+      <div class="card"><div class="num">${ad.total_advertisers}</div><div class="label">المعلنون</div></div>
+      <div class="card"><div class="num">${ed.total}</div><div class="label">العناصر التحريرية</div></div>
+      <div class="card"><div class="num">${ed.published}</div><div class="label">منشور تحريري</div></div>
+    `;
+
+    document.getElementById('analytics-content-tbody').innerHTML = `
+      <tr><td>إجمالي المقالات</td><td><strong>${c.total}</strong></td></tr>
+      <tr><td>منشورة</td><td><strong>${c.published}</strong></td></tr>
+      <tr><td>مسودة</td><td><strong>${c.draft}</strong></td></tr>
+      <tr><td>مرفوضة</td><td><strong>${c.rejected}</strong></td></tr>
+      <tr><td>إجمالي المشاهدات</td><td><strong>${c.total_views}</strong></td></tr>
+      <tr><td>متوسط المشاهدات لكل مقالة</td><td><strong>${c.avg_views_per_article}</strong></td></tr>
+    `;
+    document.getElementById('analytics-ads-tbody').innerHTML = `
+      <tr><td>الحملات</td><td><strong>${ad.total_campaigns}</strong></td></tr>
+      <tr><td>الحملات النشطة</td><td><strong>${ad.active_campaigns}</strong></td></tr>
+      <tr><td>مرات الظهور</td><td><strong>${ad.total_impressions}</strong></td></tr>
+      <tr><td>النقرات</td><td><strong>${ad.total_clicks}</strong></td></tr>
+      <tr><td>نسبة النقر (CTR)</td><td><strong>${ad.ctr}%</strong></td></tr>
+      <tr><td>المعلنون</td><td><strong>${ad.total_advertisers}</strong></td></tr>
+    `;
+    document.getElementById('analytics-editorial-tbody').innerHTML = `
+      <tr><td>إجمالي العناصر التحريرية</td><td><strong>${ed.total}</strong></td></tr>
+      <tr><td>قيد الانتظار</td><td><strong>${ed.pending}</strong></td></tr>
+      <tr><td>معتمدة</td><td><strong>${ed.approved}</strong></td></tr>
+      <tr><td>مرفوضة</td><td><strong>${ed.rejected}</strong></td></tr>
+      <tr><td>منشورة</td><td><strong>${ed.published}</strong></td></tr>
+      <tr><td>متوسط الثقة</td><td><strong>${ed.avg_confidence}%</strong></td></tr>
+    `;
+  } catch (e) { console.error('Analytics error:', e); }
+}
+
+// ─── Tenant-admin API helper ───
+
+async function tenantApi(path, opts = {}) {
+  const base = '/api/tenant';
+  const res = await fetch(base + path, {
+    headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
+    ...opts,
+  });
+  if (!res.ok) { let msg; try { const e = await res.json(); msg = e.error; } catch { msg = res.statusText; } throw new Error(msg); }
+  return res.json();
+}
+
+// ─── Replace api references in branding/users/analytics with tenantApi ───
+// (Functions below already use tenantApi after the override above)
+
+populateTenantSelectors();
 </script>
 </body>
 </html>

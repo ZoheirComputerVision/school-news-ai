@@ -1,5 +1,37 @@
 # CHANGELOG.md — سجل التغييرات
 
+## [v3.1.0] — 2026-06-14 — Phase 3B: Tenant Administration & White Label Platform
+
+### Added
+- **New Module: Branding Manager** — `modules/tenant/branding-manager.js` — logo, favicon, homepage title, footer info, editorial description, about text, social links, contact info
+- **New Module: User Manager** — `modules/tenant/user-manager.js` — 4 roles (super_admin, tenant_admin, editor, reviewer), bcrypt hashing, per-tenant JWT generation
+- **New Module: Pages Manager** — `modules/tenant/pages-manager.js` — CRUD for about, contact, editorial-policy, privacy-policy pages per tenant
+- **New Module: Analytics** — `modules/tenant/analytics.js` — per-tenant content/ad/editorial/engagement stats computed on-the-fly
+- **New Middleware: Authorization** — `middleware/authorize.js` — `requireRole()`, `requireTenantAccess()`, `authenticateToken()`, `adminAuth()`
+- **New Routes: Tenant Admin** — `routes/tenant-admin.js` — 14 endpoints under `/api/tenant/`:
+  - POST `/api/tenant/auth` — tenant-scoped login
+  - GET/PUT `/:id/branding` — branding management
+  - GET/PUT `/:id/pages[/:type]` — page management with publish/unpublish
+  - GET `/public/:slug/pages` — public page access (no auth)
+  - GET/POST `/:id/users` + PUT `/:id/users/:userId` — user management
+  - GET `/:id/analytics` — full tenant analytics
+- **New DB Tables:** `tenant_settings`, `tenant_users`, `tenant_pages` added to JSON adapter and migration
+- **Extended SaaS Control Center:** 3 new tabs (Branding, Users, Analytics) with forms, tables, modals
+- **Default super_admin user** seeded on startup (username: superadmin)
+
+### Changed
+- **`modules/tenant/migrate.js`** — verify 5 tables (tenants, tenant_config, tenant_settings, tenant_users, tenant_pages) + seed default super_admin
+- **`lib/dal/json-adapter.js`** — add 3 new tables to `init()`
+- **`server.js`** — mount `/api/tenant` routes; require `tenantAdminRoutes`
+- **`.gitignore`** — add `tenant_settings.json`, `tenant_users.json`, `tenant_pages.json`
+
+### Security
+- Per-tenant user login with bcrypt password verification
+- JWT now carries `{ id, username, role, tenant_id }` for tenant-admin tokens
+- `requireRole()` middleware enforces role-based access at endpoint level
+- `requireTenantAccess()` prevents tenant_admin from accessing other tenants' data
+- Tenant users cannot access super admin routes (`/api/admin`) — separate auth flow
+
 ## [v3.0.0] — 2026-06-14 — Phase 3A: Multi-Tenant SaaS Foundation
 
 ### Added

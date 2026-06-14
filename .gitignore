@@ -13,6 +13,9 @@ data/campaigns.json
 data/ad_events.json
 data/tenants.json
 data/tenant_config.json
+data/tenant_settings.json
+data/tenant_users.json
+data/tenant_pages.json
 data/backups/
 public/uploads/
 server-test.log

@@ -312,10 +312,64 @@ Navigation is defined in `config/navigation.js`:
 ### Security Model
 - Tenant isolation is enforced at the **route handler level**
 - Each route filters data by `req.tenant.id` before returning results
-- Multi-tenant admin still uses a single shared JWT (tenant-scoped admin credentials planned for future)
+- Multi-tenant admin uses per-tenant JWT (Phase 3B) for tenant_admin/editor/reviewer roles
+- Tenant users stored in `tenant_users` table with bcrypt password hashing
+- Role-based access: `super_admin` (all tenants), `tenant_admin` (own tenant), `editor` (create/edit), `reviewer` (approve/reject)
+- `middleware/authorize.js` provides `requireRole()` and `requireTenantAccess()` middleware
+- Super admin login uses existing `adminAuth` via `ADMIN_USERNAME`/`ADMIN_PASSWORD` config
 - Data without `tenant_id` is treated as belonging to the default `tiaret` tenant
 
-## 9. Key Limitations
+## 9. Tenant Administration & White Label (Phase 3B)
+
+### Branding Manager (`modules/tenant/branding-manager.js`)
+- Structured logo, favicon, homepage title, footer info, editorial description, about text
+- Social links: Facebook, Twitter, Instagram, YouTube
+- Contact: email, phone
+- CRUD via `tenant_settings` table with `tenant_id` isolation
+
+### User Manager (`modules/tenant/user-manager.js`)
+- 4 roles: super_admin, tenant_admin, editor, reviewer
+- bcrypt password hashing, per-tenant JWT generation
+- Token payload: `{ id, username, role, tenant_id }` with 24h expiry
+- CRUD isolated by tenant; only tenant_admin or super_admin can manage users
+
+### Pages Manager (`modules/tenant/pages-manager.js`)
+- 4 page types: about, contact, editorial-policy, privacy-policy
+- Title + content + published status per page
+- Public access via `GET /api/tenant/public/:slug/pages/:type`
+
+### Analytics (`modules/tenant/analytics.js`)
+- Per-tenant on-the-fly aggregation from existing data:
+  - Content stats: total, published, draft, rejected, by_category, total_views
+  - Ad stats: campaigns, impressions, clicks, CTR, advertisers
+  - Editorial stats: pending, approved, rejected, published, avg_confidence
+  - Engagement: top 5 most-viewed articles, unique viewed articles
+
+### API Endpoints (`routes/tenant-admin.js` under `/api/tenant`)
+| Method | Path | Auth | Role |
+|--------|------|------|------|
+| POST | `/api/tenant/auth` | Public | — |
+| GET | `/api/tenant/:id/branding` | JWT | Any tenant user |
+| PUT | `/api/tenant/:id/branding` | JWT | super_admin, tenant_admin |
+| GET | `/api/tenant/:id/pages` | JWT | Any tenant user |
+| GET | `/api/tenant/:id/pages/:type` | JWT | Any tenant user |
+| PUT | `/api/tenant/:id/pages/:type` | JWT | super_admin, tenant_admin, editor |
+| POST | `/api/tenant/:id/pages/:type/publish` | JWT | super_admin, tenant_admin, editor |
+| POST | `/api/tenant/:id/pages/:type/unpublish` | JWT | super_admin, tenant_admin, editor |
+| GET | `/api/tenant/public/:slug/pages` | No | Public |
+| GET | `/api/tenant/public/:slug/pages/:type` | No | Public |
+| GET | `/api/tenant/:id/users` | JWT | super_admin, tenant_admin |
+| POST | `/api/tenant/:id/users` | JWT | super_admin, tenant_admin |
+| PUT | `/api/tenant/:id/users/:userId` | JWT | super_admin, tenant_admin |
+| GET | `/api/tenant/:id/analytics` | JWT | Any tenant user |
+
+### Extended SaaS Control Center
+- New tabs: Branding, Users, Analytics
+- Branding: form-based editor for logo, favicon, homepage title, footer, social, contact
+- Users: table with create/edit/toggle active; inline modal
+- Analytics: summary cards + per-category tables (content, ads, editorial)
+
+## 10. Key Limitations
 
 - **JSON DB:** Not safe for concurrent writes — SQLite recommended for production (set `DB_TYPE=sqlite`)
 - **Demo Fallback:** Real sources available but Facebook requires `FACEBOOK_ACCESS_TOKEN` in `.env`
@@ -324,7 +378,7 @@ Navigation is defined in `config/navigation.js`:
 - **No tests:** Zero test coverage
 - **Source Registry:** Full metadata in SQLite `sources` table with region, municipality, category, reliability scoring
 
-## 9. Deployment
+## 11. Deployment
 
 ```
 Local Dev:  Windows + Node.js + npm start
