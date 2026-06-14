@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="البحث - الصوت المحلي">
+  <title>البحث | الصوت المحلي</title>
+  <link rel="stylesheet" href="/css/newspaper.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F50D;</text></svg>">
+</head>
+<body>
+  <div class="np-top-bar">
+    <div class="container">
+      <span class="date">📅 <span id="np-date"></span></span>
+      <span class="edition">الصوت المحلي — بحث</span>
+    </div>
+  </div>
+  <header class="np-masthead">
+    <div class="container">
+      <div class="logo-main" style="font-size:2rem;">الصوت المحلي</div>
+      <div class="logo-sub">بحث في المحتوى</div>
+    </div>
+  </header>
+  <div id="main-nav"></div>
+  <div id="news-ticker" style="display:none"></div>
+  <nav id="breadcrumbs" aria-label="Breadcrumb"></nav>
+  <main class="container">
+    <div id="global-search" style="display:none"></div>
+    <div id="search-page">
+      <div class="np-section-header">
+        <h2>🔍 البحث</h2>
+      </div>
+      <div id="search-box" class="search-box-large">
+        <input type="text" id="search-input" placeholder="ابحث عن مقالات، أخبار، مواضيع..." />
+        <button id="search-submit">🔍</button>
+      </div>
+      <div id="search-filters" class="search-filters">
+        <button class="filter-btn active" data-type="all">الكل</button>
+        <button class="filter-btn" data-type="articles">مقالات</button>
+        <button class="filter-btn" data-type="tags">وسوم</button>
+        <button class="filter-btn" data-type="categories">تصنيفات</button>
+        <button class="filter-btn" data-type="archive">الأرشيف</button>
+      </div>
+      <div id="search-results" class="np-card-grid">
+      </div>
+      <div id="search-empty" style="display:none">
+        <p>لا توجد نتائج. حاول بكلمات أخرى.</p>
+      </div>
+    </div>
+  </main>
+  <footer class="np-footer">
+    <div class="container">
+      <div class="voice-line">🎙️ الصوت المحلي</div>
+      <h3>🎙️ الصوت المحلي</h3>
+      <p>إهتمام محلي ... إلتزام وطني</p>
+    </div>
+  </footer>
+  <script src="/js/api.js"></script>
+  <script src="/js/newspaper.js"></script>
+  <script src="/js/nav.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('np-date').textContent = new Date().toLocaleDateString('ar-DZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get('q') || '';
+      const type = params.get('type') || 'all';
+
+      const input = document.getElementById('search-input');
+      const submitBtn = document.getElementById('search-submit');
+      const resultsEl = document.getElementById('search-results');
+      const emptyEl = document.getElementById('search-empty');
+      const filterBtns = document.querySelectorAll('.filter-btn');
+
+      if (q) input.value = q;
+
+      filterBtns.forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.type === type) btn.classList.add('active');
+      });
+
+      const doSearch = async (q, type) => {
+        if (!q || q.length < 2) { resultsEl.innerHTML = ''; emptyEl.style.display = 'none'; return; }
+
+        const url = new URL(window.location);
+        url.searchParams.set('q', q);
+        url.searchParams.set('type', type);
+        window.history.replaceState({}, '', url);
+
+        resultsEl.innerHTML = '<div class="np-loading">جارٍ البحث...</div>';
+        emptyEl.style.display = 'none';
+
+        try {
+          const endpoint = type === 'all' ? `/search?q=${encodeURIComponent(q)}` : `/search?q=${encodeURIComponent(q)}&type=${type}`;
+          const data = await API.get(endpoint);
+          const items = data.items || [];
+
+          if (items.length === 0) {
+            resultsEl.innerHTML = '';
+            emptyEl.style.display = 'block';
+            return;
+          }
+
+          let html = '<div class="np-news-grid">';
+          items.forEach(item => {
+            const date = item.event_date || (item.published_at ? item.published_at.split('T')[0] : '');
+            const summary = (item.summary || item.body || '').substring(0, 120);
+            const hasImage = item.image_data || item.image_url;
+            const catLabel = NP.CONFIG.categoryLabels && NP.CONFIG.categoryLabels[item.category] ? NP.CONFIG.categoryLabels[item.category] : item.category || '';
+            html += `
+              <div class="np-card">
+                ${hasImage
+                  ? `<img class="np-card-image" src="${item.image_data || item.image_url}" alt="${item.title}" loading="lazy">`
+                  : `<div class="np-card-image-placeholder">📰</div>`
+                }
+                <div class="np-card-body">
+                  <div class="category-tag ${item.category}">${catLabel}</div>
+                  <h3><a href="/article/${item.id}">${item.title}</a></h3>
+                  <p>${summary}...</p>
+                  <div class="meta"><span>📅 ${date}</span></div>
+                </div>
+              </div>`;
+          });
+          html += '</div>';
+          resultsEl.innerHTML = html;
+        } catch (e) {
+          resultsEl.innerHTML = '<div class="np-loading">تعذر إكمال البحث</div>';
+        }
+      };
+
+      submitBtn.addEventListener('click', () => doSearch(input.value.trim(), document.querySelector('.filter-btn.active')?.dataset?.type || 'all'));
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(input.value.trim(), document.querySelector('.filter-btn.active')?.dataset?.type || 'all'); });
+
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          filterBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          if (input.value.trim()) doSearch(input.value.trim(), btn.dataset.type);
+        });
+      });
+
+      if (q) doSearch(q, type);
+    });
+  </script>
+</body>
+</html>

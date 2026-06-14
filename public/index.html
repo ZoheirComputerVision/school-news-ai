@@ -16,6 +16,7 @@
     <div class="container">
       <span class="date">📅 <span id="np-date"></span></span>
       <span class="edition">العدد <span id="np-hijri">870</span> — السنة الثالثة</span>
+      <div id="global-search" style="display:none"></div>
     </div>
   </div>
 
@@ -33,42 +34,15 @@
   </header>
 
   <!-- ═══ NAVIGATION ═══ -->
-  <nav class="np-nav">
-    <div class="container">
-      <a href="/" class="active">★ رئيسي</a>
-      <a href="/news.html">📰 أخبار</a>
-      <a href="/activities.html">📈 نشاطات</a>
-      <a href="/announcements.html">📢 إعلانات</a>
-      <a href="/timeline.html">📅 أرشيف</a>
-      <div class="np-nav-dropdown">
-        <span class="np-nav-dropdown-trigger">📂 أقسام ▾</span>
-        <div class="np-nav-dropdown-menu">
-          <a href="/section.html?s=sports">⚽ رياضة</a>
-          <a href="/section.html?s=culture">🎭 ثقافة</a>
-          <a href="/section.html?s=science">🔬 علوم</a>
-          <a href="/section.html?s=literature">📖 أدب</a>
-          <a href="/section.html?s=opinion">🗣️ رأي</a>
-          <a href="/section.html?s=guidance">🧑‍🏫 توجيه</a>
-          <a href="/section.html?s=students">🎓 طلبة</a>
-          <a href="/section.html?s=education">🏛️ تربية</a>
-        </div>
-      </div>
-      <div class="np-nav-dropdown">
-        <span class="np-nav-dropdown-trigger">🌐 خدمات ▾</span>
-        <div class="np-nav-dropdown-menu">
-          <a href="https://awlyaa.education.dz/" target="_blank" rel="noopener noreferrer">👤 فضاء الأولياء</a>
-          <a href="https://ostad.education.dz/auth" target="_blank" rel="noopener noreferrer">👨‍🏫 فضاء الأساتذة</a>
-          <a href="https://bac.onec.dz/" target="_blank" rel="noopener noreferrer">🎓 التسجيل في شهادة البكالوريا</a>
-        </div>
-      </div>
-      <div class="nav-left">
-        <a href="/admin">⚙️ الإدارة</a>
-      </div>
-    </div>
-  </nav>
+  <div id="main-nav"></div>
+
+  <!-- ═══ NEWS TICKER ═══ -->
+  <div id="news-ticker" style="display:none"></div>
 
   <!-- ═══ MAIN CONTENT ═══ -->
   <main class="container">
+
+    <nav id="breadcrumbs" aria-label="Breadcrumb"></nav>
 
     <!-- Featured Story -->
     <div id="np-featured"></div>
@@ -129,5 +103,6 @@
 
   <script src="/js/api.js"></script>
   <script src="/js/newspaper.js"></script>
+  <script src="/js/nav.js"></script>
 </body>
 </html>

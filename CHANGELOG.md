@@ -1,6 +1,30 @@
 # CHANGELOG.md — سجل التغييرات
 
-## [2.4.0] — 2026-06-14 — Phase 2C: Editorial Intelligence Layer
+## [v2.4.0] — 2026-06-14 — Phase 2B.2: Navigation & Information Architecture Enhancement
+
+### Added
+- 11-section config-driven navigation system
+- Regional submenu for "أخبار المنطقة" (config-driven, 5 municipalities)
+- Sticky navigation bar with mobile hamburger menu support
+- Live news ticker with scrolling headlines
+- Breadcrumb trail with JSON-LD structured data
+- Global search with type filters (articles/tags/categories/archive)
+- Section pages with featured article, latest, most viewed sections
+- Enhanced archive navigation by year/month/category
+- Dedicated search results page (/search)
+- Section routes (/section/:category)
+- Navigation configuration module (config/navigation.js)
+- Nav API endpoints (/api/nav, /api/latest-news, /api/section/:category, /api/archive-data)
+- Client-side Nav component (public/js/nav.js)
+
+### Changed
+- All public HTML files: hardcoded nav → dynamic Nav component
+- section.html: enhanced with featured + most viewed sections
+- archive.html: enhanced with year/month/category filters
+- routes/api.js: 4 new endpoints + enhanced search
+- server.js: 3 new SSR routes
+
+## [2.5.0] — 2026-06-14 — Phase 2C: Editorial Intelligence Layer
 
 ### Added
 - **`modules/classifier.js`** — Editorial Classifier بـ 9 فئات تحريرية

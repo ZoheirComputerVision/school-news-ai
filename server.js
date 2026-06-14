@@ -34,6 +34,10 @@ app.get('/', (req, res) => res.sendFile(path.join(config.PUBLIC_DIR, 'index.html
 app.get('/admin', (req, res) => res.sendFile(path.join(config.ADMIN_DIR, 'index.html')));
 app.get('/admin/*', (req, res) => res.sendFile(path.join(config.ADMIN_DIR, req.params[0] || 'index.html')));
 
+app.get('/section/:category', (req, res) => res.sendFile(path.join(config.PUBLIC_DIR, 'section.html')));
+app.get('/archive', (req, res) => res.sendFile(path.join(config.PUBLIC_DIR, 'archive.html')));
+app.get('/search', (req, res) => res.sendFile(path.join(config.PUBLIC_DIR, 'search.html')));
+
 app.get('/article/:id', (req, res) => res.sendFile(path.join(config.PUBLIC_DIR, 'article.html')));
 
 app.use((err, req, res, next) => {

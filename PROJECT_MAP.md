@@ -11,7 +11,7 @@
 | UUID | uuid | 9.0.0 |
 
 ## VERSION
-**Current:** v2.3.0  
+**Current:** v2.4.0
 **Last updated:** 2026-06-14
 
 ## SYSTEM_FLOW (Phase 2C)
@@ -119,6 +119,15 @@
   - Fields: source_id, name, type, region, municipality, category, status, reliability_score, sync_frequency
   - API: register, getActive, getByType, getByRegion, getByCategory, markSync, markError
   - Collectors register through Source Registry only — no hardcoded sources
+- [x] **Phase 2B.2: Navigation & IA Enhancement**
+  - 11-section config-driven navigation
+  - Regional submenu for أخبار المنطقة
+  - Sticky nav (mobile + desktop)
+  - News ticker (live headlines)
+  - Breadcrumb trail with JSON-LD
+  - Global search with filters
+  - Enhanced section pages (featured/latest/most viewed)
+  - Enhanced archive (year/month/category)
 - [x] **Phase 2C: Editorial Intelligence Layer**
   - [x] `modules/classifier.js` — 9-category editorial classifier with confidence scoring
   - [x] `modules/fact-validator.js` — Source reputation + cross-source + date validation

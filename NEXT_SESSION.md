@@ -1,5 +1,24 @@
 # NEXT_SESSION.md — تعليمات الجلسة القادمة
 
+## ✅ Phase 2B.2 Complete — Navigation & Information Architecture Enhancement
+
+### المنجز:
+- [x] **`config/navigation.js`** — نظام تنقل config-driven بـ 11 عنصراً
+  - `navItems` — 11 عنصر تنقل مع labels, icons, paths, category mappings, SEO metadata
+  - `regionalSubmenu` — 5 مواقع جهوية (عين كرمس, تيارت, فرندة, السوقر, مهدية)
+  - `categoryToSlug` / `slugToCategory` — ربط فئات المصنف بالروابط
+- [x] **شريط التنقل الثابت (Sticky Navigation)** — دعم القوائم المنسدلة، قائمة الهامبرغر للجوال، الثبات عند التمرير
+- [x] **الشريط الإخباري (News Ticker)** — عناوين أفقية متحركة مع توقف عند تمرير الماوس
+- [x] **فتات الخبز (Breadcrumbs)** — مسار تلقائي من الرابط مع JSON-LD structured data
+- [x] **البحث الشامل (Global Search)** — نموذج بحث مع اختصار لوحة المفاتيح (`/`)، تصفية حسب النوع
+- [x] **القائمة الفرعية الجهوية** — قائمة قابلة للتكوين لـ "أخبار المنطقة" (5 بلديات)
+- [x] **صفحات الأقسام المحسّنة** — مقال مميز + أحدث + الأكثر مشاهدة
+- [x] **الأرشيف المحسّن** — تصفح حسب السنة/الشهر/التصنيف
+- [x] **صفحة نتائج بحث مخصصة** — `/search`
+- [x] **مسارات RESTful** — `/section/:category`, `/search`
+- [x] **API endpoints جديدة** — `/api/nav`, `/api/latest-news`, `/api/section/:category`, `/api/archive-data`
+- [x] **مكون Nav العميل** — `public/js/nav.js`
+
 ## ✅ Phase 2C Complete — Editorial Intelligence Layer
 
 ### المنجز:
@@ -53,4 +72,5 @@ DB_TYPE=sqlite
 - **JSON adapter** يبقى الافتراضي؛ SQLite متاح عبر `DB_TYPE=sqlite`
 - **المصنف 9 فئات** جاهز ومتوافق مع الأسماء القديمة (news→national, activity→event, announcement→advertisements)
 - **حوكمة AI** متاحة عبر `/admin/governance.html` — تعرض سلسلة القرارات الكاملة ودرجات الثقة
+- **نظام التنقل** معرف في `config/navigation.js` — لا تُغيّر الهيكل دون توثيق
 - لا تمس هوية "الصوت المحلي" أو هيكل الأقسام التحريرية الـ 12

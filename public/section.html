@@ -10,23 +10,115 @@
 <body>
   <div class="np-top-bar"><div class="container"><span class="date">📅 <span id="np-date"></span></span><span class="edition">الصوت المحلي — أقسام</span></div></div>
   <header class="np-masthead"><div class="container"><div class="logo-main" style="font-size:2rem;">الصوت المحلي</div><div class="logo-sub" id="section-title">قسم</div></div></header>
-  <nav class="np-nav"><div class="container"><a href="/">★ رئيسي</a><a href="/news.html">📰 أخبار</a><a href="/activities.html">📈 نشاطات</a><a href="/announcements.html">📢 إعلانات</a><a href="/timeline.html">📅 أرشيف</a><div class="np-nav-dropdown"><span class="np-nav-dropdown-trigger">📂 أقسام ▾</span><div class="np-nav-dropdown-menu"><a href="/section.html?s=sports">⚽ رياضة</a><a href="/section.html?s=culture">🎭 ثقافة</a><a href="/section.html?s=science">🔬 علوم</a><a href="/section.html?s=literature">📖 أدب</a><a href="/section.html?s=opinion">🗣️ رأي</a><a href="/section.html?s=guidance">🧑‍🏫 توجيه</a><a href="/section.html?s=students">🎓 طلبة</a><a href="/section.html?s=education">🏛️ تربية</a></div></div><div class="nav-left"><a href="/admin">⚙️ الإدارة</a></div></div></nav>
+  <div id="main-nav"></div>
+  <div id="news-ticker" style="display:none"></div>
+  <nav id="breadcrumbs" aria-label="Breadcrumb"></nav>
   <main class="container">
-    <div id="np-category-content"></div>
+    <div id="global-search" style="display:none"></div>
+    <div id="featured-article" class="np-featured-section"></div>
+    <div id="np-category-content" class="np-card-grid"></div>
+    <div id="most-viewed" class="np-most-viewed"></div>
+    <div id="section-archive-link" style="text-align:center;margin:30px 0;">
+      <a href="/archive" class="np-btn">→ كل المقالات في هذا القسم</a>
+    </div>
   </main>
   <footer class="np-footer"><div class="container"><div class="voice-line">🎙️ الصوت المحلي</div><h3>🎙️ الصوت المحلي</h3><p>إهتمام محلي ... إلتزام وطني</p></div></footer>
   <script src="/js/api.js"></script>
   <script src="/js/newspaper.js"></script>
+  <script src="/js/nav.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('np-date').textContent = new Date().toLocaleDateString('ar-DZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+      const pathParts = window.location.pathname.split('/');
+      const sectionFromPath = pathParts[pathParts.length - 1];
       const params = new URLSearchParams(window.location.search);
-      const section = params.get('s');
-      const names = { sports: '⚽ الرياضة', culture: '🎭 الثقافة', science: '🔬 العلوم', literature: '📖 الأدب', opinion: '🗣️ الرأي', guidance: '🧑‍🏫 التوجيه', students: '🎓 الطلبة', education: '🏛️ التربية' };
+      const section = params.get('s') || sectionFromPath;
+
+      const names = { sports: '⚽ الرياضة', culture: '🎭 الثقافة', science: '🔬 العلوم', literature: '📖 الأدب', opinion: '🗣️ الرأي', guidance: '🧑‍🏫 التوجيه', students: '🎓 الطلبة', education: '🏛️ التربية', event: '📰 حدث', national: '🇩🇿 وطني', region: '📍 أخبار المنطقة', society: '👥 مجتمع', development: '🌱 التنمية', faces: '👤 وجوه وعبر', ads: '📢 إعلانات' };
       const sectionName = names[section] || 'القسم';
       document.getElementById('section-title').textContent = sectionName;
       document.title = sectionName + ' | الصوت المحلي';
-      NP.loadCategoryPage(section);
+
+      const loadEnhancedSection = async () => {
+        try {
+          const data = await API.get('/section/' + section);
+          if (!data || (!data.featured && (!data.latest || data.latest.length === 0) && (!data.mostViewed || data.mostViewed.length === 0))) {
+            NP.loadCategoryPage(section);
+            return;
+          }
+
+          if (data.meta && data.meta.title) {
+            document.title = data.meta.title;
+            document.getElementById('section-title').textContent = data.meta.title.replace(' - الصوت المحلي', '').replace(' | الصوت المحلي', '');
+          }
+
+          const featuredEl = document.getElementById('featured-article');
+          if (data.featured) {
+            const item = data.featured;
+            const date = item.event_date || (item.published_at ? item.published_at.split('T')[0] : '');
+            const imageStyle = item.image_data ? `background-image:url('${item.image_data}')` : item.image_url ? `background-image:url('${item.image_url}')` : '';
+            featuredEl.innerHTML = `
+              <div class="np-featured">
+                <div class="np-featured-inner">
+                  <div class="np-featured-image" style="${imageStyle || ''}">${imageStyle ? '' : '📰'}</div>
+                  <div class="np-featured-content">
+                    <div class="category-tag ${item.category}">${NP.CONFIG.categoryLabels[item.category] || item.category}</div>
+                    <h2><a href="/article/${item.id}">${item.title}</a></h2>
+                    <p>${(item.summary || item.body || '').substring(0, 200)}...</p>
+                    <div class="meta">
+                      <span>📅 ${date}</span>
+                      <span>📡 ${item.source_name || 'غير محدد'}</span>
+                      ${item.overall_score ? `<span>🎯 ${Math.round(item.overall_score * 100)}%</span>` : ''}
+                    </div>
+                    <a href="/article/${item.id}" class="np-btn np-btn-sm np-btn-primary" style="margin-top:15px;width:fit-content;">اقرأ المزيد</a>
+                  </div>
+                </div>
+              </div>`;
+          } else {
+            featuredEl.innerHTML = '';
+          }
+
+          const contentEl = document.getElementById('np-category-content');
+          if (data.latest && data.latest.length > 0) {
+            let html = '<hr class="np-rule"><div class="np-section-header"><h3>📰 أحدث المقالات</h3></div><div class="np-news-grid">';
+            data.latest.forEach(item => {
+              const date = item.event_date || (item.published_at ? item.published_at.split('T')[0] : '');
+              const hasImage = item.image_data || item.image_url;
+              html += `
+                <div class="np-card">
+                  ${hasImage ? `<img class="np-card-image" src="${item.image_data || item.image_url}" alt="${item.title}" loading="lazy">` : `<div class="np-card-image-placeholder">📰</div>`}
+                  <div class="np-card-body">
+                    <div class="category-tag ${item.category}">${NP.CONFIG.categoryLabels[item.category] || item.category}</div>
+                    <h3><a href="/article/${item.id}">${item.title}</a></h3>
+                    <p>${(item.summary || item.body || '').substring(0, 120)}...</p>
+                    <div class="meta"><span>📅 ${date}</span></div>
+                  </div>
+                </div>`;
+            });
+            html += '</div>';
+            contentEl.innerHTML = html;
+          } else {
+            contentEl.innerHTML = '';
+          }
+
+          const viewedEl = document.getElementById('most-viewed');
+          if (data.mostViewed && data.mostViewed.length > 0) {
+            let html = '<hr class="np-rule"><div class="np-section-header"><h3>👁️ الأكثر مشاهدة</h3></div><ol class="np-most-viewed-list" style="list-style:none;counter-reset:mv-counter;padding:0;">';
+            data.mostViewed.forEach((item, idx) => {
+              html += `<li style="counter-increment:mv-counter;padding:10px 0;border-bottom:1px solid var(--np-border);display:flex;align-items:center;gap:10px;"><span style="background:var(--np-accent,#c8a951);color:var(--np-primary-dark);width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;font-weight:700;font-size:0.85rem;flex-shrink:0;">${idx + 1}</span><div><a href="/article/${item.id}" style="font-weight:600;">${item.title}</a><br><span style="font-size:0.75rem;color:var(--np-gray);">👁️ ${item.view_count || 0}</span></div></li>`;
+            });
+            html += '</ol>';
+            viewedEl.innerHTML = html;
+          } else {
+            viewedEl.innerHTML = '';
+          }
+        } catch (e) {
+          NP.loadCategoryPage(section);
+        }
+      };
+
+      loadEnhancedSection();
     });
   </script>
 </body>

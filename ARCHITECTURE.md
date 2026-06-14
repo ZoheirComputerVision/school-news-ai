@@ -8,6 +8,7 @@
 - **Data Sources:** Facebook Graph API, RSS/Atom, Web Scraping, Manual Entry
 - **Design Identity:** الصوت المحلي — أزرق ملكي وذهبي
 - **Design Governance:** [`DESIGN_GOVERNANCE.md`](./DESIGN_GOVERNANCE.md) — وثيقة مُلزمة لجميع التطوير المستقبلي
+- **Navigation:** 11-section config-driven nav with regional submenu, sticky header, breadcrumbs
 
 ## 2. System Layers
 
@@ -182,7 +183,40 @@ Each pipeline step writes to ai_decision_log:
 | runArchiveSync | Every 6 hours | Unlimited |
 | resetDailyCount | Daily at midnight | — |
 
-## 7. Key Limitations
+## 7. Navigation System
+
+### Routes
+| Path | Page | Description |
+|------|------|-------------|
+| `/` | index.html | Homepage with featured + editorial grid |
+| `/section/:category` | section.html | Dynamic section pages per category |
+| `/article/:id` | article.html | Single article view |
+| `/archive` | archive.html | Archive by year/month/category |
+| `/search` | search.html | Global search results |
+
+### API Endpoints
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/nav` | Navigation tree (items + regional submenu) |
+| `GET /api/latest-news` | Latest 10 headlines for ticker |
+| `GET /api/section/:category` | Section data (featured, latest, mostViewed, meta) |
+| `GET /api/archive-data` | Archive grouped by year/month/category |
+
+### Components
+- **Sticky Navigation** — 11-item main nav with dropdown support, mobile hamburger menu, sticky on scroll
+- **News Ticker** — Horizontal scrolling latest headlines, pause on hover
+- **Breadcrumbs** — Auto-generated trail from URL path with JSON-LD structured data
+- **Global Search** — Search form with keyboard shortcut (`/`), filter by type (articles/tags/categories/archive)
+- **Regional Submenu** — Config-driven submenu for "أخبار المنطقة" (5 municipalities)
+
+### Configuration
+Navigation is defined in `config/navigation.js`:
+- `navItems` — 11 main navigation items with labels, icons, paths, category mappings, SEO metadata
+- `regionalSubmenu` — 5 regional locations (عين كرمس, تيارت, فرندة, السوقر, مهدية)
+- `categoryToSlug` — Maps 9 classifier categories to URL slugs
+- `slugToCategory` — Reverse mapping from slugs to classifier categories
+
+## 8. Key Limitations
 
 - **JSON DB:** Not safe for concurrent writes — SQLite recommended for production (set `DB_TYPE=sqlite`)
 - **Demo Fallback:** Real sources available but Facebook requires `FACEBOOK_ACCESS_TOKEN` in `.env`
@@ -191,7 +225,7 @@ Each pipeline step writes to ai_decision_log:
 - **No tests:** Zero test coverage
 - **Source Registry:** Full metadata in SQLite `sources` table with region, municipality, category, reliability scoring
 
-## 8. Deployment
+## 9. Deployment
 
 ```
 Local Dev:  Windows + Node.js + npm start

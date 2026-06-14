@@ -10,21 +10,141 @@
 <body>
   <div class="np-top-bar"><div class="container"><span class="date">📅 <span id="np-date"></span></span><span class="edition">الصوت المحلي</span></div></div>
   <header class="np-masthead"><div class="container"><div class="logo-main" style="font-size:2rem;">الصوت المحلي</div><div class="logo-sub">الأرشيف</div></div></header>
-  <nav class="np-nav"><div class="container"><a href="/">★ رئيسي</a><a href="/news.html">📰 أخبار</a><a href="/activities.html">📈 نشاطات</a><a href="/announcements.html">📢 إعلانات</a><a href="/timeline.html">📅 أرشيف</a><div class="nav-left"><a href="/admin">⚙️ الإدارة</a></div></div></nav>
+  <div id="main-nav"></div>
+  <div id="news-ticker" style="display:none"></div>
+  <nav id="breadcrumbs" aria-label="Breadcrumb"></nav>
   <main class="container">
+    <div id="global-search" style="display:none"></div>
     <div class="np-category-header"><h1>📂 الأرشيف</h1><p>إحصائيات وأرشيف المحتوى</p></div>
     <div id="np-stats" class="np-stats-bar"></div>
+    <div id="archive-nav" class="archive-navigation" style="margin:20px 0;">
+      <div class="archive-filters" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:center;">
+        <select id="archive-year" style="padding:8px 14px;border:1px solid var(--np-border);border-radius:4px;background:var(--np-white);font-family:Tajawal,sans-serif;"><option value="">كل السنوات</option></select>
+        <select id="archive-month" style="padding:8px 14px;border:1px solid var(--np-border);border-radius:4px;background:var(--np-white);font-family:Tajawal,sans-serif;"><option value="">كل الأشهر</option></select>
+        <select id="archive-category" style="padding:8px 14px;border:1px solid var(--np-border);border-radius:4px;background:var(--np-white);font-family:Tajawal,sans-serif;"><option value="">كل التصنيفات</option></select>
+      </div>
+      <div id="archive-results" style="margin-top:15px;"></div>
+    </div>
     <hr class="np-rule">
     <div id="np-timeline"></div>
   </main>
   <footer class="np-footer"><div class="container"><div class="voice-line">🎙️ الصوت المحلي</div><h3>🎙️ الصوت المحلي</h3><p>إهتمام محلي ... إلتزام وطني</p></div></footer>
   <script src="/js/api.js"></script>
   <script src="/js/newspaper.js"></script>
+  <script src="/js/nav.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('np-date').textContent = new Date().toLocaleDateString('ar-DZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
       NP.loadStats();
       NP.loadTimeline();
+
+      const catNames = {
+        event: 'حدث', national: 'وطني', region: 'أخبار المنطقة', 'regional-news': 'أخبار المنطقة',
+        society: 'مجتمع', culture: 'ثقافة', sports: 'رياضة',
+        development: 'التنمية', faces: 'وجوه وعبر', 'faces-stories': 'وجوه وعبر',
+        ads: 'إعلانات', advertisements: 'إعلانات',
+        news: 'أخبار', activity: 'نشاطات', announcement: 'إعلانات',
+        science: 'علوم', literature: 'أدب', opinion: 'رأي', guidance: 'توجيه',
+        students: 'طلبة', education: 'تربية', uncategorized: 'غير مصنف',
+      };
+      const monthNames = ['', 'جانفي', 'فيفري', 'مارس', 'أفريل', 'ماي', 'جوان', 'جويلية', 'أوت', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+
+      const initArchiveNav = async () => {
+        try {
+          const data = await API.get('/archive-data');
+          const yearSelect = document.getElementById('archive-year');
+          const monthSelect = document.getElementById('archive-month');
+          const categorySelect = document.getElementById('archive-category');
+          const resultsEl = document.getElementById('archive-results');
+
+          data.years.forEach(year => {
+            const opt = document.createElement('option');
+            opt.value = year;
+            opt.textContent = year + ' (' + data.byYear[year].total + ')';
+            yearSelect.appendChild(opt);
+          });
+
+          for (let i = 1; i <= 12; i++) {
+            const opt = document.createElement('option');
+            opt.value = String(i).padStart(2, '0');
+            opt.textContent = monthNames[i];
+            monthSelect.appendChild(opt);
+          }
+
+          Object.entries(data.byCategory)
+            .sort((a, b) => b[1] - a[1])
+            .forEach(([cat, count]) => {
+              const opt = document.createElement('option');
+              opt.value = cat;
+              opt.textContent = (catNames[cat] || cat) + ' (' + count + ')';
+              categorySelect.appendChild(opt);
+            });
+
+          const filterTimeline = async () => {
+            const year = yearSelect.value;
+            const month = monthSelect.value;
+            const category = categorySelect.value;
+
+            if (!year && !month && !category) {
+              resultsEl.innerHTML = '';
+              document.getElementById('np-timeline').style.display = '';
+              return;
+            }
+
+            document.getElementById('np-timeline').style.display = 'none';
+            resultsEl.innerHTML = '<div class="np-loading">جارٍ التصفية...</div>';
+
+            try {
+              const allData = await API.getContent({ status: 'published', limit: 200 });
+              const items = allData.items || [];
+
+              let filtered = items.filter(item => {
+                const dateStr = item.event_date || (item.published_at || '').split('T')[0] || '';
+                const parts = dateStr.split('-');
+                const itemYear = parts[0];
+                const itemMonth = parts[1] || '';
+
+                if (year && itemYear !== year) return false;
+                if (month && itemMonth !== month) return false;
+                if (category) {
+                  const slugMap = { event: 'event', national: 'national', 'regional-news': 'region', society: 'society', culture: 'culture', sports: 'sports', development: 'development', 'faces-stories': 'faces', advertisements: 'ads' };
+                  const catSlug = slugMap[item.category] || item.category || 'uncategorized';
+                  if (catSlug !== category) return false;
+                }
+                return true;
+              });
+
+              if (filtered.length === 0) {
+                resultsEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--np-gray);font-size:1.1rem;">لا توجد نتائج للفترة المحددة</div>';
+                return;
+              }
+
+              let html = '<div style="margin-bottom:10px;font-weight:600;color:var(--np-primary);">' + filtered.length + ' نتيجة</div><div class="np-timeline">';
+              filtered.forEach(item => {
+                const date = item.event_date || (item.published_at ? item.published_at.split('T')[0] : '');
+                html += `
+                  <div class="np-timeline-item">
+                    <div class="t-date">${date}</div>
+                    <h4><a href="/article/${item.id}">${item.title}</a></h4>
+                    <p>${(item.summary || item.body || '').substring(0, 100)}...</p>
+                  </div>`;
+              });
+              html += '</div>';
+              resultsEl.innerHTML = html;
+            } catch (e) {
+              resultsEl.innerHTML = '<div class="np-loading">تعذر تحميل نتائج التصفية</div>';
+            }
+          };
+
+          yearSelect.addEventListener('change', filterTimeline);
+          monthSelect.addEventListener('change', filterTimeline);
+          categorySelect.addEventListener('change', filterTimeline);
+        } catch (e) {
+          document.getElementById('archive-nav').style.display = 'none';
+        }
+      };
+
+      initArchiveNav();
     });
   </script>
 </body>

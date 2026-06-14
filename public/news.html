@@ -13,6 +13,7 @@
     <div class="container">
       <span class="date">📅 <span id="np-date"></span></span>
       <span class="edition">الصوت المحلي</span>
+      <div id="global-search" style="display:none"></div>
     </div>
   </div>
   <header class="np-masthead">
@@ -21,29 +22,10 @@
       <div class="logo-sub">قسم الأخبار</div>
     </div>
   </header>
-  <nav class="np-nav">
-    <div class="container">
-      <a href="/">★ رئيسي</a>
-      <a href="/news.html" class="active">📰 أخبار</a>
-      <a href="/activities.html">📈 نشاطات</a>
-      <a href="/announcements.html">📢 إعلانات</a>
-      <a href="/timeline.html">📅 أرشيف</a>
-      <div class="np-nav-dropdown">
-        <span class="np-nav-dropdown-trigger">📂 أقسام ▾</span>
-        <div class="np-nav-dropdown-menu">
-          <a href="/section.html?s=sports">⚽ رياضة</a>
-          <a href="/section.html?s=culture">🎭 ثقافة</a>
-          <a href="/section.html?s=science">🔬 علوم</a>
-          <a href="/section.html?s=literature">📖 أدب</a>
-          <a href="/section.html?s=opinion">🗣️ رأي</a>
-          <a href="/section.html?s=guidance">🧑‍🏫 توجيه</a>
-          <a href="/section.html?s=students">🎓 طلبة</a>
-          <a href="/section.html?s=education">🏛️ تربية</a>
-        </div>
-      </div>
-      <div class="nav-left"><a href="/admin">⚙️ الإدارة</a></div>
-    </div>
-  </nav>
+  <div id="main-nav"></div>
+
+  <div id="news-ticker" style="display:none"></div>
+  <nav id="breadcrumbs" aria-label="Breadcrumb"></nav>
   <main class="container">
     <div class="np-category-header">
       <h1>📰 الأخبار</h1>
@@ -73,5 +55,6 @@
       NP.initSearch();
     });
   </script>
+  <script src="/js/nav.js"></script>
 </body>
 </html>

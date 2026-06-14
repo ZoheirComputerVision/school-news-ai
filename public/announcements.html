@@ -8,10 +8,12 @@
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F4F0;</text></svg>">
 </head>
 <body>
-  <div class="np-top-bar"><div class="container"><span class="date">📅 <span id="np-date"></span></span><span class="edition">الصوت المحلي</span></div></div>
+  <div class="np-top-bar"><div class="container"><span class="date">📅 <span id="np-date"></span></span><span class="edition">الصوت المحلي</span></div></div><div id="global-search" style="display:none"></div>
   <header class="np-masthead"><div class="container"><div class="logo-main" style="font-size:2rem;">الصوت المحلي</div><div class="logo-sub">قسم الإعلانات</div></div></header>
-  <nav class="np-nav"><div class="container"><a href="/">★ رئيسي</a><a href="/news.html">📰 أخبار</a><a href="/activities.html">📈 نشاطات</a><a href="/announcements.html" class="active">📢 إعلانات</a><a href="/timeline.html">📅 أرشيف</a><div class="nav-left"><a href="/admin">⚙️ الإدارة</a></div></div></nav>
-  <main class="container">
+  <div id="main-nav"></div>
+<div id="news-ticker" style="display:none"></div>
+  <nav id="breadcrumbs" aria-label="Breadcrumb"></nav>
+<main class="container">
     <div class="np-category-header"><h1>📢 الإعلانات</h1><p>الإعلانات الرسمية والتوجيهات التربوية</p></div>
     <div id="np-category-content"></div>
   </main>
@@ -19,5 +21,5 @@
   <script src="/js/api.js"></script>
   <script src="/js/newspaper.js"></script>
   <script>document.addEventListener('DOMContentLoaded', () => { document.getElementById('np-date').textContent = new Date().toLocaleDateString('ar-DZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }); NP.loadCategoryPage('announcement'); });</script>
-</body>
+<script src="/js/nav.js"></script></body>
 </html>
