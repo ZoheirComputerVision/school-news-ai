@@ -18,6 +18,9 @@ module.exports = {
   SCHOOL_SUB: 'عين كرمس - تيارت',
   ADMIN_TEAM: 'Zoheir IT Solutions',
 
+  FACEBOOK_ACCESS_TOKEN: process.env.FACEBOOK_ACCESS_TOKEN || '',
+  FACEBOOK_PAGE_ID: process.env.FACEBOOK_PAGE_ID || 'Mujahid56khallil.Mohammed26SecondarySchool.2023',
+
   AI: {
     AUTO_PUBLISH_THRESHOLD: 0.8,
     REVIEW_THRESHOLD: 0.5,

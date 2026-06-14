@@ -1,44 +1,50 @@
 # NEXT_SESSION.md — تعليمات الجلسة القادمة
 
-## ✅ Phase 2A Complete — Local Voice Rebranding & Neo Vintage UI
+## ✅ Phase 2B Complete — Real Content Acquisition Layer
 
 ### المنجز:
-- [x] **هوية "الصوت المحلي"** — إعادة تسمية النظام بالكامل
-- [x] **`public/css/newspaper.css`** — نظام تصميم Neo Vintage (3 أعمدة، طباعة، مساحات إعلانية)
-- [x] **`public/js/newspaper.js`** — محرك عرض جديد مع Featured Story + Editorial Grid + Timeline
-- [x] **`public/index.html`** — صفحة رئيسية جديدة (Masthead، Hero، 3 أعمدة، أرشيف، إعلانات)
-- [x] **`public/section.html`** — 8 أقسام تحريرية جديدة (رياضة، ثقافة، علوم، أدب، رأي، توجيه، طلبة، تربية)
-- [x] **تحديث جميع الصفحات (8 صفحات)** — article، news، activities، announcements، timeline، archive
-- [x] **`config.js`** — إضافة `VOICE_NAME`
-- [x] **`server.js`** — شعار 🎙️ الصوت المحلي
-- [x] **اختبار 11 صفحة** — جميعها تعمل (200 OK)
+- [x] **`lib/scraper/`** — إطار جمع محتوى بـ 4 جالبين (Facebook, RSS, Web, Manual)
+- [x] **`modules/dedup.js`** — كشف التكرار بـ 3 طرق (hash, URL, تشابه عناوين)
+- [x] **`modules/normalizer.js`** — تطبيع المحتوى (تنظيف HTML، تاريخ، تصنيف تلقائي)
+- [x] **`modules/scorer.js`** — تسجيل ثقة المصادر (ثقة + حداثة + نجاح)
+- [x] **`modules/monitor.js`** — لوحة مراقبة مع API (status, logs, health)
+- [x] **`modules/collector.js`** — إعادة هيكلة كاملة مع الحفاظ على التوافقية العكسية
+- [x] **`routes/admin.js`** — 3 نقاط نهاية جديدة للمراقبة
+- [x] **`config.js`** — إعدادات Facebook API
+- [x] **إضافة تبعيات**: axios, cheerio, rss-parser
 
 ---
 
-## المهمة التالية: Phase 2B — Real Data Sources & AI Pipeline
+## المهمة التالية: Phase 3 — Neo Vintage Newspaper Refinements & AI Pipeline
 
 ### الأولوية: 🔴 عالية
 
 ### الملفات المستهدفة:
 | الملف | التعديل المطلوب |
 |-------|-----------------|
-| `modules/collector.js` | Facebook Graph API + Web scraper |
-| `modules/analyzer.js` | AI classification (AraBERT أو API) |
-| `modules/writer.js` | LLM integration (GPT/Gemini) |
-| `modules/publisher.js` | تحسينات النشر |
-| `config.js` | API keys للمصادر |
-| `package.json` | إضافة axios, cheerio |
+| `modules/analyzer.js` | AI classification حقيقي (AraBERT أو API خارجي) |
+| `modules/writer.js` | LLM integration (GPT/Gemini) مع أسلوب كل قسم |
+| `modules/publisher.js` | تحسينات النشر الآلي |
+| `public/` | تحسينات SEO + JSON-LD + sitemap.xml |
+| `config.js` | API keys للذكاء الاصطناعي |
 
 ### خطوات التنفيذ المقترحة:
-1. تفعيل SQLite: إضافة `DB_TYPE=sqlite` إلى `.env` (اختياري)
-2. ربط Facebook Graph API (token + pagination)
-3. Web scraper باستخدام axios + cheerio
-4. تحسين trust scoring متعدد المصادر
-5. لوحة بيانات جودة المحتوى
+1. تفعيل SQLite: إضافة `DB_TYPE=sqlite` إلى `.env` (اختياري — لاحظ الأداء)
+2. ربط Facebook Graph API الحقيقي: إضافة `FACEBOOK_ACCESS_TOKEN` إلى `.env`
+3. إضافة RSS feeds حقيقية (وزارة التربية، مديرية التربية لولاية تيارت، إلخ)
+4. استبدال محلل التصنيف الحالي (rule-based) بـ ML classifier حقيقي
+5. ربط LLM لكتابة المقالات بأسلوب الصحافة الورقية
+6. تحسين محرّكات البحث (SEO): JSON-LD, sitemap.xml, meta tags
+7. إعدادات النشر الآلي مع جدولة زمنية (cron expressions متقدمة)
+
+### إعدادات البيئة الجديدة:
+```env
+FACEBOOK_ACCESS_TOKEN=your_token_here
+FACEBOOK_PAGE_ID=Mujahid56khallil.Mohammed26SecondarySchool.2023
+```
 
 ### ملاحظات:
-- الهوية الجديدة "الصوت المحلي" نشطة وجاهزة
-- JSON يبقى كـ fallback (يمكن التبديل عبر `.env`)
-- `DB_TYPE` في `.env` يتحكم في adapter
-- جميع الـ Backend APIs محفوظة ودون تغيير
-- واجهة Neo Vintage Newspaper جاهزة للعرض
+- JSON adapter يبقى الافتراضي لصغر حجم البيانات
+- SQLite متاح عبر `DB_TYPE=sqlite` في `.env` (أداء أبطأ في هذا النطاق)
+- جميع واجهات API للإدارة متاحة الآن تحت `/admin/collector/*`
+- لا تمس هوية "الصوت المحلي" أو هيكل الأقسام التحريرية الـ 12

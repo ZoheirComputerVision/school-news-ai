@@ -1,5 +1,73 @@
 # CHANGELOG.md — سجل التغييرات
 
+## [2.1.0] — 2026-06-14 — Phase 2B: Real Content Acquisition Layer
+
+### Added
+- **`lib/scraper/`** — إطار جمع محتوى متكامل من 4 أنظمة
+  - `fetcher.js` — عميل HTTP مع إعادة محاولة (retry) ومهلة زمنية
+  - `parser.js` — استخراج نصوص وميتا من HTML باستخدام cheerio
+  - `facebook.js` — جمع من Facebook Graph API v21.0 مع fallback تجريبي
+  - `rss.js` — تحليل RSS/Atom feeds باستخدام rss-parser
+  - `website.js` — جمع محتوى من أي موقع ويب
+  - `index.js` — ScraperFactory يختار الجالب المناسب حسب نوع المصدر
+- **`modules/dedup.js`** — محرك كشف التكرار بـ 3 طرق
+  - تجزئة محتوى (MD5 hash) للكشف الدقيق
+  - رابط URL لكشف المنشورات المكررة
+  - تشابه العناوين (bigram/Jaccard similarity) للكشف التقريبي (>80%)
+- **`modules/normalizer.js`** — خط أنابيب تطبيع المحتوى
+  - تنظيف HTML وإزالة العناصر غير المرغوب فيها
+  - استخراج الملخص التلقائي
+  - استدلال التصنيف من النص (أخبار، نشاطات، إعلانات)
+  - توحيد تنسيق التاريخ
+- **`modules/scorer.js`** — نظام تسجيل الثقة للمصادر
+  - درجة الثقة (trust score) من الإعدادات
+  - درجة الحداثة (freshness score) حسب تاريخ آخر جمع
+  - معدل النجاح (success rate) من سجلات التشغيل
+  - درجة مركبة (composite score) مرجحة
+- **`modules/monitor.js`** — لوحة مراقبة الجمع
+  - تسجيل كل عملية جمع مع التفاصيل (source, items, duration, status)
+  - إحصائيات (ناجح/فاشل/مكرر) في آخر 7 أيام
+  - ملخص المصادر حسب النوع والحالة
+  - نقاط نهاية API: `/admin/collector/status`, `/admin/collector/logs`, `/admin/sources/health`
+- **`config.js`** — إضافة `FACEBOOK_ACCESS_TOKEN`, `FACEBOOK_PAGE_ID` (من `.env`)
+
+### Changed
+- **`modules/collector.js`** — إعادة هيكلة كاملة
+  - يستخدم ScraperFactory لاختيار الجالب حسب نوع المصدر
+  - يطبق التطبيع (ContentNormalizer) قبل التخزين
+  - يمر عبر محرك التكرار (DedupEngine) لكل عنصر
+  - يسجل عمليات الجمع في CollectorMonitor
+  - يحدث درجات الثقة للمصادر بعد كل عملية
+  - **API متوافق بالكامل** — `collectAll()`, `collectFacebook()`, `collectMinistry()`, `collectManual()` كلها تعمل
+- **`routes/admin.js`** — إضافة 3 نقاط نهاية للمراقبة:
+  - `GET /admin/collector/status` — إحصائيات + ملخص + آخر الجولات + أفضل المصادر
+  - `GET /admin/collector/logs` — سجل مفصل مع `limit` و `days`
+  - `GET /admin/sources/health` — حالة كل مصدر مع درجاته
+- **`package.json`** — إضافة `axios`, `cheerio`, `rss-parser`
+
+### Architecture
+```
+lib/scraper/
+  ├── index.js      ← ScraperFactory
+  ├── fetcher.js    ← HTTP client (retry, timeout)
+  ├── parser.js     ← HTML → metadata + article
+  ├── facebook.js   ← Facebook Graph API collector
+  ├── rss.js        ← RSS/Atom feed collector
+  └── website.js    ← Generic website scraper
+
+modules/
+  ├── collector.js  ← Orchestrator (updated)
+  ├── dedup.js      ← Duplicate detection (hash/URL/title)
+  ├── normalizer.js ← Content normalization pipeline
+  ├── scorer.js     ← Source scoring system
+  └── monitor.js    ← Collector run logging & stats
+```
+
+### Notes
+- Facebook Graph API يتطلب `FACEBOOK_ACCESS_TOKEN` في `.env` — بدونه يستخدم بيانات تجريبية
+- جميع الجالبين الجدد لديهم fallback آمن إذا تعذر الاتصال بالمصدر
+- JSON adapter يبقى الافتراضي؛ SQLite متاح عبر `DB_TYPE=sqlite`
+
 ## [2.0.0] — 2026-06-14 — Phase 2A: Local Voice Rebranding & Neo Vintage UI
 
 ### Added

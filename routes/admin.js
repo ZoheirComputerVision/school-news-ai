@@ -207,4 +207,46 @@ router.post('/scheduler/run-collector', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+router.get('/collector/status', (req, res) => {
+  try {
+    const monitor = collector.getMonitor();
+    const scorer = collector.getScorer();
+    const stats = monitor.getStats(7);
+    const sourcesSummary = monitor.getSourcesSummary();
+    const recentRuns = monitor.getRecentRuns(20);
+    const topSources = scorer.getTopSources(5);
+    res.json({ stats, sourcesSummary, recentRuns, topSources });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.get('/collector/logs', (req, res) => {
+  try {
+    const monitor = collector.getMonitor();
+    const { limit = 50, days = 7 } = req.query;
+    const stats = monitor.getStats(parseInt(days));
+    const recentRuns = monitor.getRecentRuns(parseInt(limit));
+    res.json({ stats, runs: recentRuns });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.get('/sources/health', (req, res) => {
+  try {
+    const scorer = collector.getScorer();
+    const allSources = db.sources.findAll();
+    const health = allSources.map(s => {
+      const score = scorer.computeScore(s);
+      return {
+        id: s.id,
+        name: s.name,
+        type: s.type,
+        is_active: !!s.is_active,
+        url: s.url,
+        last_scraped: s.last_scraped || null,
+        ...score,
+      };
+    });
+    res.json({ sources: health });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 module.exports = router;
