@@ -6,5 +6,7 @@ node_modules/
 *.bak
 data/fb_replies.json
 data/views.json
+data/admin_actions.json
+data/backups/
 public/uploads/
 server-test.log

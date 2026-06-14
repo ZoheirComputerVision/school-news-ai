@@ -7,7 +7,7 @@ const articles = db.articles;
 const archiveRepo = new ArchiveRepository(db.adapter);
 
 router.get('/status', (req, res) => {
-  res.json({ school: 'ثانوية المجاهد خليل محمد المدعو يوسف', location: 'عين كرمس - تيارت', system: 'نظام الجريدة المدرسية الذكية AI', version: '1.0', status: 'active', last_update: new Date().toISOString() });
+  res.json({ platform: 'الصوت المحلي', tagline: 'إهتمام محلي ... إلتزام وطني', location: 'ولاية تيارت — الجزائر', description: 'منصة جهوية للإعلام العام والتنمية المحلية', version: '1.0', status: 'active', last_update: new Date().toISOString() });
 });
 
 router.get('/content', (req, res) => {

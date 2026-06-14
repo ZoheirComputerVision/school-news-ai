@@ -2,7 +2,7 @@
 
 | البند | التفاصيل |
 |-------|----------|
-| **Project Name** | school-news-ai — الجريدة المدرسية الذكية |
+| **Project Name** | school-news-ai — الصوت المحلي |
 | **Date** | 2026-06-13 |
 | **Objective** | التحليل المعماري الكامل والتوثيق الشامل للمشروع |
 | **Role** | Staff Software Engineer & Tech Lead |

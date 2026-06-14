@@ -1,7 +1,7 @@
 {
   "name": "school-news-ai",
   "version": "1.0.0",
-  "description": "نظام جريدة مدرسية ذكية - ثانوية المجاهد خليل محمد",
+  "description": "منصة جهوية للإعلام العام والتنمية المحلية",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

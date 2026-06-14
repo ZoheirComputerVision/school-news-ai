@@ -71,10 +71,9 @@ class ContentAnalyzer {
     const entry = SourceRegistry.findByName(sourceName);
     if (entry && entry.reliability_score) return entry.reliability_score;
     const trustMap = {
-      'وزارة التربية الوطنية': 0.95,
-      'وزارة التربية': 0.95,
-      'مديرية التربية': 0.85,
-      'إدارة الثانوية': 0.90,
+      'مصادر حكومية': 0.90,
+      'مصادر جهوية': 0.80,
+      'مصادر داخلية': 0.85,
       'صفحة الفيسبوك الرسمية': 0.70,
     };
     for (const [key, trust] of Object.entries(trustMap)) {

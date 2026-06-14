@@ -6,10 +6,10 @@ const articles = new ArticleRepository(db.adapter);
 const classifier = new EditorialClassifier();
 
 const FOOTER_AI = '\n\n—\n🖋 تم إنتاج هذا المحتوى بمساعدة تقنيات الذكاء الاصطناعي. يخضع هذا المحتوى للمراجعة الآلية والبشرية قبل وبعد النشر.';
-const FOOTER_OFFICIAL = '\n\n—\n📝 محتوى رسمي معتمد من إدارة ثانوية المجاهد خليل محمد.';
-const COPYRIGHT = `\n© ${new Date().getFullYear()} ثانوية المجاهد خليل محمد المدعو يوسف - عين كرمس. جميع الحقوق محفوظة.`;
+const FOOTER_OFFICIAL = '\n\n—\n📝 محتوى رسمي معتمد من المنصة.';
+const COPYRIGHT = `\n© ${new Date().getFullYear()} الصوت المحلي - ولاية تيارت. جميع الحقوق محفوظة.`;
 
-const SCHOOL = 'ثانوية المجاهد خليل محمد المدعو يوسف - عين كرمس (تيارت)';
+const SCHOOL = 'الصوت المحلي - ولاية تيارت';
 
 class EditorialWriter {
   _cleanTitle(title, category) {
@@ -50,7 +50,7 @@ class EditorialWriter {
     for (const [keyword, tagList] of Object.entries(tagMap)) {
       if (body.includes(keyword)) tagList.forEach(t => tags.add(t));
     }
-    tags.add('ثانوية المجاهد خليل محمد');
+    tags.add('الصوت المحلي');
     tags.add('عين كرمس');
     if (content.category && content.category !== 'uncategorized') {
       tags.add(classifier.getCategoryLabel(content.category));
@@ -98,17 +98,17 @@ class EditorialWriter {
   _buildLead(data, category) {
     const date = data.event_date ? `في ${data.event_date}، ` : '';
     const source = data.source_name ? `حسب ما ورد عن ${data.source_name}، ` : '';
-    if (category === 'national' || category === 'regional-news') return `${date}${source}علمت الجريدة المدرسية أن ${SCHOOL} ${(data.body || '').slice(0, 60)}...`;
-    if (category === 'advertisements') return `${source}صدر عن إدارة ${SCHOOL} الإعلان التالي:`;
-    if (category === 'event') return `${date}في إطار النشاطات التربوية، نظمت ${SCHOOL} `;
-    if (category === 'faces-stories') return `${date}في إطار التعريف بالكفاءات، ${SCHOOL} `;
+    if (category === 'national' || category === 'regional-news') return `${date}${source}علمت منصة الصوت المحلي أن ${(data.body || '').slice(0, 60)}...`;
+    if (category === 'advertisements') return `${source}صدر عن إدارة المنصة الإعلان التالي:`;
+    if (category === 'event') return `${date}في إطار النشاطات التربوية، نظمت المنصة `;
+    if (category === 'faces-stories') return `${date}في إطار التعريف بالكفاءات، المنصة `;
     return `${date}${source}`;
   }
 
   _eventTemplate(data) {
     const title = this._cleanTitle(data.title, 'event');
     const meta = `📆 ${data.event_date || 'تاريخ غير محدد'}`;
-    return `${title}\n\n${meta}\n\nفي إطار النشاطات التربوية والثقافية التي تنظمها ${SCHOOL}، وتجسيدًا لبرنامجها السنوي للأنشطة، ${data.body || ''}\n\nتهدف هذه النشاطات إلى صقل مواهب التلاميذ وتنمية مهاراتهم المعرفية والاجتماعية، وتعزيز روح المواطنة والانتماء لديهم.${FOOTER_AI}${COPYRIGHT}`;
+    return `${title}\n\n${meta}\n\nفي إطار النشاطات التربوية والثقافية التي تنظمها المنصة، وتجسيدًا لبرنامجها السنوي للأنشطة، ${data.body || ''}\n\nتهدف هذه النشاطات إلى صقل مواهب التلاميذ وتنمية مهاراتهم المعرفية والاجتماعية، وتعزيز روح المواطنة والانتماء لديهم.${FOOTER_AI}${COPYRIGHT}`;
   }
 
   _nationalTemplate(data) {
@@ -118,13 +118,13 @@ class EditorialWriter {
     const sentences = body.split(/[.\n]/).filter(s => s.trim());
     const lead = sentences.slice(0, 2).join('. ') + '.';
     const details = sentences.slice(2).join('. ');
-    return `${title}\n\n${meta}\n\n${lead}\n\n${details ? `تفاصيل إضافية:\n${details}` : ''}\n\nيُشار إلى أن هذه المعلومات وردت من المصادر المتاحة وتمت معالجتها آليًا لنشرها في الجريدة المدرسية الذكية لثانوية المجاهد خليل محمد.${FOOTER_AI}${COPYRIGHT}`;
+    return `${title}\n\n${meta}\n\n${lead}\n\n${details ? `تفاصيل إضافية:\n${details}` : ''}\n\nيُشار إلى أن هذه المعلومات وردت من المصادر المتاحة وتمت معالجتها آليًا لنشرها في منصة الصوت المحلي.${FOOTER_AI}${COPYRIGHT}`;
   }
 
   _regionalNewsTemplate(data) {
     const title = this._cleanTitle(data.title, 'regional-news');
     const meta = `📍 ${data.event_date || 'تاريخ غير محدد'} | ${data.source_name || 'غير محدد'}`;
-    return `${title}\n\n${meta}\n\n${data.body || ''}\n\nهذا وتواصل الجريدة المدرسية متابعتها للأخبار المحلية بمنطقة عين كرمس وتيارت.${FOOTER_AI}${COPYRIGHT}`;
+    return `${title}\n\n${meta}\n\n${data.body || ''}\n\nهذا وتواصل منصة الصوت المحلي متابعتها للأخبار المحلية بمنطقة عين كرمس وتيارت.${FOOTER_AI}${COPYRIGHT}`;
   }
 
   _societyTemplate(data) {
@@ -149,13 +149,13 @@ class EditorialWriter {
 
   _facesStoriesTemplate(data) {
     const title = this._cleanTitle(data.title, 'faces-stories');
-    return `${title}\n\nضمن سلسلة "شخصيات وقصص" التي تقدمها الجريدة المدرسية، ${data.body || ''}\n\nقصص النجاح والإبداع هي مصدر إلهام للأجيال، ونسعى دائمًا لتسليط الضوء عليها.${FOOTER_AI}${COPYRIGHT}`;
+    return `${title}\n\nضمن سلسلة "شخصيات وقصص" التي تقدمها منصة الصوت المحلي، ${data.body || ''}\n\nقصص النجاح والإبداع هي مصدر إلهام للأجيال، ونسعى دائمًا لتسليط الضوء عليها.${FOOTER_AI}${COPYRIGHT}`;
   }
 
   _advertisementsTemplate(data) {
     const title = this._cleanTitle(data.title, 'advertisements');
     const meta = `📅 ${data.event_date || 'تاريخ غير محدد'}`;
-    return `${title}\n\n${meta}\n\nإدارة ${SCHOOL}\n\n${data.body || ''}\n\n🔹 على جميع المعنيين التقيد بالشروط والآجال المحددة.\n🔹 للمزيد من المعلومات، يرجى التوجه إلى إدارة الثانوية أو الاتصال بها خلال أوقات العمل الرسمية.${FOOTER_OFFICIAL}${COPYRIGHT}`;
+    return `${title}\n\n${meta}\n\nإدارة المنصة\n\n${data.body || ''}\n\n🔹 على جميع المعنيين التقيد بالشروط والآجال المحددة.\n🔹 للمزيد من المعلومات، يرجى التوجه إلى المنصة أو الاتصال بها خلال أوقات العمل الرسمية.${FOOTER_OFFICIAL}${COPYRIGHT}`;
   }
 
   async generateForContent(contentId) {

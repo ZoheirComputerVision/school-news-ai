@@ -15,7 +15,7 @@ function setCurrentDate() {
 }
 
 function sourceBadge(item) {
-  const officialSources = ['وزارة التربية الوطنية', 'وزارة التربية', 'مديرية التربية', 'إدارة الثانوية', 'إداري'];
+  const officialSources = ['مصادر رسمية', 'مصادر حكومية', 'مصادر جهوية', 'مصادر داخلية', 'إدخال يدوي'];
   const isOfficial = officialSources.some(s => (item.source_name || '').includes(s));
   if (isOfficial) return '<span class="source-badge official">📜 رسمي</span>';
 
@@ -192,8 +192,8 @@ async function loadSidebar() {
       <div>
         <h3>🔗 المصادر الرسمية</h3>
         <ul>
-          <li><a href="https://www.education.gov.dz/" target="_blank">🌐 وزارة التربية الوطنية</a></li>
-          <li><a href="https://www.facebook.com/Mujahid56khallil.Mohammed26SecondarySchool.2023" target="_blank">📘 صفحة الثانوية</a></li>
+          <li><a href="https://www.education.gov.dz/" target="_blank">🌐 مصادر حكومية</a></li>
+          <li><a href="https://www.facebook.com/Mujahid56khallil.Mohammed26SecondarySchool.2023" target="_blank">📘 صفحة المنصة</a></li>
         </ul>
       </div>
       <div>

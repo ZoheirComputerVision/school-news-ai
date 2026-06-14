@@ -4,7 +4,7 @@
 
 - **Project:** school-news-ai — الصوت المحلي
 - **Type:** SaaS Platform (single-tenant حالياً)
-- **School:** ثانوية المجاهد خليل محمد المدعو يوسف - عين كرمس (تيارت)
+- **Platform:** الصوت المحلي — منصة جهوية للإعلام العام والتنمية المحلية
 - **Data Sources:** Facebook Graph API, RSS/Atom, Web Scraping, Manual Entry
 - **Design Identity:** الصوت المحلي — أزرق ملكي وذهبي
 - **Design Governance:** [`DESIGN_GOVERNANCE.md`](./DESIGN_GOVERNANCE.md) — وثيقة مُلزمة لجميع التطوير المستقبلي

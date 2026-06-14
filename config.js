@@ -14,7 +14,7 @@ module.exports = {
   ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || '',
 
   VOICE_NAME: 'الصوت المحلي',
-  SCHOOL_NAME: 'ثانوية المجاهد خليل محمد المدعو يوسف',
+  SCHOOL_NAME: 'الصوت المحلي',
   SCHOOL_SUB: 'عين كرمس - تيارت',
   ADMIN_TEAM: 'Zoheir IT Solutions',
 

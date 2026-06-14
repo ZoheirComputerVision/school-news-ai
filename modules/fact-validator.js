@@ -33,7 +33,7 @@ class FactValidator {
     }
 
     // 3. School reference check
-    const schoolRefs = ['المجاهد خليل محمد', 'عين كرمس', 'تيارت', 'ثانوية'];
+    const schoolRefs = ['الصوت المحلي', 'عين كرمس', 'تيارت', 'ولاية'];
     const refCount = schoolRefs.filter(r => body.includes(r)).length;
     if (refCount >= 2) {
       score += 0.1;
