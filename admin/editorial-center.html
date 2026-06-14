@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مركز حوكمة AI | لوحة التحكم</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .gov-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:15px; margin-bottom:20px; }
+    .gov-card { background:#f8fafc; border-radius:8px; padding:15px; text-align:center; border:1px solid #e5e7eb; }
+    .gov-card h3 { font-size:1.8rem; margin:5px 0; color:#1a3a5c; }
+    .gov-card p { color:#6b7280; font-size:0.85rem; }
+    .gov-score-bar { height:8px; border-radius:4px; background:#e5e7eb; margin:8px 0; overflow:hidden; }
+    .gov-score-fill { height:100%; border-radius:4px; transition:width 0.5s; }
+    .gov-badge { display:inline-block; padding:2px 10px; border-radius:12px; font-size:0.75rem; font-weight:bold; }
+    .gov-badge.approve { background:#dcfce7; color:#166534; }
+    .gov-badge.reject { background:#fef2f2; color:#991b1b; }
+    .gov-badge.review { background:#fef3c7; color:#92400e; }
+    .gov-badge.info { background:#dbeafe; color:#1e40af; }
+    .gov-filter { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; align-items:center; }
+    .gov-filter .btn.active-filter { outline:2px solid #2563eb; outline-offset:2px; }
+    .gov-table-wrap { overflow-x:auto; }
+    .gov-table-wrap table { width:100%; min-width:700px; }
+    .gov-table-wrap th { background:#f1f5f9; }
+    .gov-actions { display:flex; gap:6px; flex-wrap:wrap; }
+    .conf-row { display:flex; align-items:center; gap:15px; margin-bottom:12px; }
+    .conf-row:last-child { margin-bottom:0; }
+    .conf-label { min-width:150px; font-size:0.85rem; color:#374151; }
+    .conf-bar-wrap { flex:1; }
+    .conf-count { min-width:40px; text-align:center; font-weight:bold; font-size:0.9rem; }
+  </style>
+</head>
+<body class="admin-body">
+  <div class="admin-header">
+    <h1>🔧 لوحة تحكم الجريدة الذكية</h1>
+    <div class="user-info">
+      <span id="admin-user">المشرف</span>
+      <a href="/" class="btn btn-sm btn-accent">🏠 الموقع</a>
+      <button class="btn btn-sm btn-danger" onclick="logout()">🚪 خروج</button>
+    </div>
+  </div>
+  <div class="admin-nav">
+    <a href="/admin/dashboard.html">📊 لوحة القيادة</a>
+    <a href="/admin/review.html">📝 مراجعة المحتوى</a>
+    <a href="/admin/governance.html">🔍 حوكمة AI</a>
+    <a href="/admin/editorial-center.html" class="active">🎛️ مركز حوكمة AI</a>
+    <a href="/admin/logs.html">📋 سجل AI</a>
+    <a href="/admin/settings.html">⚙️ الإعدادات</a>
+  </div>
+  <div class="admin-content">
+    <div style="margin-bottom:20px;">
+      <h2 style="margin:0;color:#1a3a5c;font-size:1.5rem;">🎛️ مركز حوكمة AI</h2>
+      <p style="margin:4px 0 0;color:#6b7280;font-size:0.9rem;">Phase 2C — Editorial Intelligence Layer</p>
+    </div>
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <span>📊 ملخص حوكمة AI</span>
+      </div>
+      <div class="admin-card-body">
+        <div id="summary-cards" class="gov-grid">
+          <div class="loading">جاري تحميل الملخص...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <span>📈 توزيع درجة الثقة</span>
+      </div>
+      <div class="admin-card-body">
+        <div id="confidence-dist">
+          <div class="loading">جاري التحميل...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <span>📋 العناصر</span>
+      </div>
+      <div class="admin-card-body">
+        <div class="gov-filter">
+          <button class="btn btn-sm btn-primary active-filter" onclick="filterItems('all', this)">الكل</button>
+          <button class="btn btn-sm btn-warning" onclick="filterItems('pending', this)">قيد المراجعة</button>
+          <button class="btn btn-sm btn-success" onclick="filterItems('approved', this)">تمت الموافقة</button>
+          <button class="btn btn-sm btn-danger" onclick="filterItems('rejected', this)">مرفوض</button>
+        </div>
+        <div class="gov-table-wrap" id="items-table">
+          <div class="loading">جاري تحميل العناصر...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <span>⚡ الإجراءات السريعة</span>
+      </div>
+      <div class="admin-card-body" style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="processAll()">🧠 معالجة البيانات الخام</button>
+      </div>
+      <div id="action-result" style="margin-top:10px;padding:0 20px 20px;"></div>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script>
+    API.admin.get = (path) => API.get(path.replace(/^\/api/, ''), true);
+    API.admin.post = (path, data) => API.post(path.replace(/^\/api/, ''), data);
+
+    function checkAuth() { if (!localStorage.getItem('admin_token')) window.location.href = '/admin'; }
+    checkAuth();
+    document.getElementById('admin-user').textContent = localStorage.getItem('admin_user') || 'Zoheir IT Solutions';
+    function logout() { localStorage.removeItem('admin_token'); localStorage.removeItem('admin_user'); window.location.href = '/admin'; }
+
+    let currentFilter = 'all';
+
+    async function loadSummary() {
+      try {
+        const summary = await API.admin.get('/api/editorial/governance/summary');
+        renderSummaryCards(summary);
+        renderConfidence(summary.by_confidence);
+      } catch (e) {
+        document.getElementById('summary-cards').innerHTML = '<div class="alert alert-danger">⚠️ ' + e.message + '</div>';
+      }
+    }
+
+    function renderSummaryCards(summary) {
+      document.getElementById('summary-cards').innerHTML =
+        '<div class="gov-card"><p>📦 إجمالي العناصر</p><h3>' + (summary.total_items || 0) + '</h3></div>' +
+        '<div class="gov-card"><p>⏳ قيد المراجعة</p><h3 style="color:#f59e0b;">' + (summary.pending || 0) + '</h3></div>' +
+        '<div class="gov-card"><p>✅ تمت الموافقة</p><h3 style="color:#22c55e;">' + (summary.approved || 0) + '</h3></div>' +
+        '<div class="gov-card"><p>❌ مرفوض</p><h3 style="color:#ef4444;">' + (summary.rejected || 0) + '</h3></div>';
+    }
+
+    function renderConfidence(bc) {
+      var container = document.getElementById('confidence-dist');
+      if (!bc) {
+        container.innerHTML = '<p style="color:#888;text-align:center;padding:20px;">لا توجد بيانات ثقة</p>';
+        return;
+      }
+      var high = bc.high || 0, medium = bc.medium || 0, low = bc.low || 0;
+      var total = high + medium + low;
+      var pct = function(n) { return total > 0 ? Math.round(n / total * 100) : 0; };
+      container.innerHTML =
+        '<div class="conf-row"><div class="conf-label"><span style="color:#22c55e;">🟢</span> عالية (≥71%)</div>' +
+        '<div class="conf-bar-wrap"><div class="gov-score-bar"><div class="gov-score-fill" style="width:' + pct(high) + '%;background:#22c55e;"></div></div></div>' +
+        '<div class="conf-count" style="color:#22c55e;">' + high + '</div></div>' +
+        '<div class="conf-row"><div class="conf-label"><span style="color:#f59e0b;">🟡</span> متوسطة (41-70%)</div>' +
+        '<div class="conf-bar-wrap"><div class="gov-score-bar"><div class="gov-score-fill" style="width:' + pct(medium) + '%;background:#f59e0b;"></div></div></div>' +
+        '<div class="conf-count" style="color:#f59e0b;">' + medium + '</div></div>' +
+        '<div class="conf-row"><div class="conf-label"><span style="color:#ef4444;">🔴</span> منخفضة (0-40%)</div>' +
+        '<div class="conf-bar-wrap"><div class="gov-score-bar"><div class="gov-score-fill" style="width:' + pct(low) + '%;background:#ef4444;"></div></div></div>' +
+        '<div class="conf-count" style="color:#ef4444;">' + low + '</div></div>';
+    }
+
+    async function loadItems() {
+      var container = document.getElementById('items-table');
+      container.innerHTML = '<div class="loading">جاري تحميل العناصر...</div>';
+      try {
+        var endpoints = { all: '/api/editorial/items', pending: '/api/editorial/pending', approved: '/api/editorial/approved', rejected: '/api/editorial/rejected' };
+        var data = await API.admin.get(endpoints[currentFilter] || endpoints.all);
+        var items = data.items || (Array.isArray(data) ? data : []);
+        renderItems(items);
+      } catch (e) {
+        container.innerHTML = '<div class="alert alert-danger">⚠️ ' + e.message + '</div>';
+      }
+    }
+
+    function renderItems(items) {
+      var container = document.getElementById('items-table');
+      if (!items.length) {
+        container.innerHTML = '<p style="color:#888;text-align:center;padding:30px;">لا توجد عناصر</p>';
+        return;
+      }
+      var labels = { pending: { label: '⏳ قيد المراجعة', cls: 'review' }, approved: { label: '✅ تمت الموافقة', cls: 'approve' }, rejected: { label: '❌ مرفوض', cls: 'reject' } };
+      var html = '<table class="table"><tr><th>المعرف</th><th>العنوان</th><th>التصنيف</th><th>درجة الثقة</th><th>الحالة</th><th>الإجراءات</th></tr>';
+      items.forEach(function(item) {
+        var st = labels[item.status] || { label: item.status, cls: 'info' };
+        var score = typeof item.confidence === 'number' ? Math.round(item.confidence * 100) : (item.confidence || 0);
+        var sc = score >= 71 ? '#22c55e' : score >= 41 ? '#f59e0b' : '#ef4444';
+        html += '<tr><td>#' + item.id + '</td><td>' + (item.title || 'N/A') + '</td><td>' + (item.category || 'N/A') + '</td>' +
+          '<td style="color:' + sc + ';font-weight:bold;">' + score + '%</td>' +
+          '<td><span class="gov-badge ' + st.cls + '">' + st.label + '</span></td><td class="gov-actions">';
+        if (item.status === 'pending') {
+          html += '<button class="btn btn-sm btn-success" onclick="approveItem(' + item.id + ')">✓ موافقة</button>' +
+            '<button class="btn btn-sm btn-danger" onclick="rejectItem(' + item.id + ')">✗ رفض</button>';
+        } else {
+          html += '<span style="color:#888;font-size:0.8rem;">—</span>';
+        }
+        html += '</td></tr>';
+      });
+      html += '</table>';
+      container.innerHTML = html;
+    }
+
+    function filterItems(filter, btn) {
+      currentFilter = filter;
+      document.querySelectorAll('.gov-filter .btn').forEach(function(b) { b.classList.remove('active-filter'); });
+      if (btn) btn.classList.add('active-filter');
+      loadItems();
+    }
+
+    async function approveItem(id) {
+      try {
+        await API.admin.post('/api/editorial/approve/' + id, { actor: 'admin' });
+        loadItems();
+        loadSummary();
+      } catch (e) {
+        document.getElementById('action-result').innerHTML = '<div class="alert alert-danger">⚠️ ' + e.message + '</div>';
+      }
+    }
+
+    async function rejectItem(id) {
+      var reason = prompt('سبب الرفض:');
+      if (reason !== null) {
+        try {
+          await API.admin.post('/api/editorial/reject/' + id, { actor: 'admin', reason: reason || 'مرفوض' });
+          loadItems();
+          loadSummary();
+        } catch (e) {
+          document.getElementById('action-result').innerHTML = '<div class="alert alert-danger">⚠️ ' + e.message + '</div>';
+        }
+      }
+    }
+
+    async function processAll() {
+      var resultDiv = document.getElementById('action-result');
+      resultDiv.innerHTML = '<div class="alert alert-info">🧠 جاري معالجة البيانات الخام...</div>';
+      try {
+        var res = await API.admin.post('/api/editorial/process-all');
+        resultDiv.innerHTML = '<div class="alert alert-success">✅ ' + (res.processed ? 'تمت معالجة ' + res.processed + ' عنصر' : (res.message || 'تم بنجاح')) + '</div>';
+        setTimeout(function() { resultDiv.innerHTML = ''; loadSummary(); loadItems(); }, 3000);
+      } catch (e) {
+        resultDiv.innerHTML = '<div class="alert alert-danger">⚠️ ' + e.message + '</div>';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      loadSummary();
+      loadItems();
+      setInterval(function() {
+        API.admin.get('/api/editorial/governance/summary').then(function(s) {
+          renderSummaryCards(s);
+          renderConfidence(s.by_confidence);
+        }).catch(function() {});
+      }, 30000);
+    });
+  </script>
+</body>
+</html>

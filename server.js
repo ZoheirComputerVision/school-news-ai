@@ -8,6 +8,8 @@ const apiRoutes = require('./routes/api');
 const adminRoutes = require('./routes/admin');
 const scheduler = require('./modules/scheduler');
 const { apiLimiter, csrfProtection } = require('./middleware/validate');
+const editorialRoutes = require('./routes/editorial');
+const { ensureEditorialTables } = require('./modules/editorial/migrate');
 
 const app = express();
 
@@ -28,6 +30,7 @@ app.use('/admin', express.static(config.ADMIN_DIR));
 
 app.use('/api', apiRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/editorial', editorialRoutes);
 
 app.get('/', (req, res) => res.sendFile(path.join(config.PUBLIC_DIR, 'index.html')));
 
@@ -61,6 +64,7 @@ app.listen(config.PORT, async () => {
   console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
 
   await seed.seedIfEmpty();
+  await ensureEditorialTables();
   scheduler.start();
 });
 
