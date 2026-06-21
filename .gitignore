@@ -1,5 +1,11 @@
 node_modules/
+.next
 .env
+.env.local
+.vercel
+coverage
+dist
+*.log
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
@@ -22,5 +28,4 @@ data/invoices.json
 data/usage_metrics.json
 data/payment_events.json
 data/backups/
-public/uploads/
-server-test.log
+ public/uploads/

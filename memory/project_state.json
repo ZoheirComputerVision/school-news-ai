@@ -1,0 +1,50 @@
+{
+  "version": "3.2.0",
+  "current_phase": "Phase 3C — Billing & Subscription Platform",
+  "last_completed_sprint": "Phase 3C — Billing & Subscription Platform",
+  "runtime_status": "Stable (Express.js + JSON DB + SQLite optional)",
+  "database_status": "Operational (JsonAdapter default, SqliteAdapter available via DB_TYPE=sqlite)",
+  "build_status": "N/A (Node.js runtime, no build step)",
+  "last_updated": "2026-06-21T02:21:00.000Z",
+  "completed_phases": [
+    "Phase 0 — Project Bootstrap & Documentation",
+    "Phase 1A — Security Hardening (JWT, bcrypt, rate-limit, CSRF)",
+    "Phase 1B — Data Layer Refactor (DAL + Repositories + Backup)",
+    "Phase 1C — SQLite Migration + Cutover",
+    "Phase 2A — Local Voice Rebranding & Neo Vintage UI",
+    "Phase 2A.2 — Design Governance Freeze",
+    "Phase 2B — Real Content Acquisition Layer (Scraper Factory, Dedup, Normalizer, Scorer, Monitor)",
+    "Phase 2B.2 — Navigation & Information Architecture Enhancement",
+    "Phase 2C — Editorial Intelligence Layer (Classifier, Fact Validator, Writer, Publisher, Governance)",
+    "Phase 2C.1 — Editorial Homepage Redesign (9 sections, AI content selection)",
+    "Phase 2D — Advertising & Revenue Layer (6 zones, campaigns, tracking, reports)",
+    "Phase 3A — Multi-Tenant SaaS Foundation (Registry, Config, Routing, Isolation, Migration)",
+    "Phase 3B — Tenant Administration & White Label Platform (Branding, Users, Pages, Analytics)",
+    "Phase 3C — Billing & Subscription Platform (Plans, Subscriptions, Invoices, Usage, Revenue)"
+  ],
+  "pending_phases": [
+    "Phase 4 — Advanced Improvements (ML Classifier, LLM Writer, External Fact Checker, SEO, Custom Domains, Payment Gateway)",
+    "Phase 5 — Polish & Sustainability (Tests, Performance, CDN, Monitoring, Documentation, Accessibility)"
+  ],
+  "next_priority": "Phase 4 — ML Classifier (استبدال التصنيف النصي بـ AraBERT أو API خارجي)",
+  "tech_stack": {
+    "runtime": "Node.js + Express",
+    "database": "JSON files (default) + SQLite via better-sqlite3",
+    "frontend": "Vanilla HTML5 + CSS3 + JavaScript",
+    "security": "Helmet.js + JWT + bcrypt + express-rate-limit + CSRF",
+    "scheduling": "node-cron",
+    "scraping": "axios + cheerio + rss-parser",
+    "hosting": "HostingGuru.io (auto-deploy from GitHub)",
+    "saas": "6 tenants, per-tenant JWT, role-based auth, tenant isolation",
+    "billing": "3 plans, subscriptions, invoices, usage tracking, MRR/ARR",
+    "ads": "6 zones, campaigns, impression/click tracking, reports"
+  },
+  "coverage_areas": [
+    "ولاية تيارت",
+    "ولاية وهران",
+    "ولاية سطيف",
+    "ولاية الجزائر العاصمة",
+    "ولاية مستغانم",
+    "ولاية الشلف"
+  ]
+}
