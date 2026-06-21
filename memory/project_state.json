@@ -1,7 +1,9 @@
 {
-  "version": "3.2.0",
-  "current_phase": "Phase 3C — Billing & Subscription Platform",
-  "last_completed_sprint": "Phase 3C — Billing & Subscription Platform",
+  "version": "0.7.0",
+  "current_phase": "GIT_FOUNDATION",
+  "last_completed_sprint": "Sprint G1 — Git Foundation & Version Control",
+  "git_status": "INITIALIZED",
+  "current_branch": "main",
   "runtime_status": "Stable (Express.js + JSON DB + SQLite optional)",
   "database_status": "Operational (JsonAdapter default, SqliteAdapter available via DB_TYPE=sqlite)",
   "build_status": "N/A (Node.js runtime, no build step)",
