@@ -1,13 +1,14 @@
 {
   "version": "0.7.0",
-  "current_phase": "GIT_FOUNDATION",
-  "last_completed_sprint": "Sprint G1 — Git Foundation & Version Control",
+  "current_phase": "PARALLEL_REWRITE",
+  "last_completed_sprint": "Sprint 1.5 — Auth.js + RBAC Foundation (Next.js rewrite)",
+  "last_session_date": "2026-06-21T15:32:51.401+01:00",
   "git_status": "INITIALIZED",
   "current_branch": "main",
-  "runtime_status": "Stable (Express.js + JSON DB + SQLite optional)",
-  "database_status": "Operational (JsonAdapter default, SqliteAdapter available via DB_TYPE=sqlite)",
-  "build_status": "N/A (Node.js runtime, no build step)",
-  "last_updated": "2026-06-21T02:21:00.000Z",
+  "runtime_status": "Dual: Express.js (production, stable) + Next.js (rewrite in progress at C:\\elsawt-elmahalli-2)",
+  "database_status": "Dual: JSON + SQLite (Express.js) / PostgreSQL via Prisma (Next.js)",
+  "build_status": "Express.js: N/A (no build). Next.js: ✅ build success (26.9s)",
+  "last_updated": "2026-06-21T15:32:51.401+01:00",
   "completed_phases": [
     "Phase 0 — Project Bootstrap & Documentation",
     "Phase 1A — Security Hardening (JWT, bcrypt, rate-limit, CSRF)",
@@ -22,18 +23,33 @@
     "Phase 2D — Advertising & Revenue Layer (6 zones, campaigns, tracking, reports)",
     "Phase 3A — Multi-Tenant SaaS Foundation (Registry, Config, Routing, Isolation, Migration)",
     "Phase 3B — Tenant Administration & White Label Platform (Branding, Users, Pages, Analytics)",
-    "Phase 3C — Billing & Subscription Platform (Plans, Subscriptions, Invoices, Usage, Revenue)"
+    "Phase 3C — Billing & Subscription Platform (Plans, Subscriptions, Invoices, Usage, Revenue)",
+    "Sprint G1 — Git Foundation & Version Control"
   ],
   "pending_phases": [
     "Phase 4 — Advanced Improvements (ML Classifier, LLM Writer, External Fact Checker, SEO, Custom Domains, Payment Gateway)",
     "Phase 5 — Polish & Sustainability (Tests, Performance, CDN, Monitoring, Documentation, Accessibility)"
   ],
-  "next_priority": "Phase 4 — ML Classifier (استبدال التصنيف النصي بـ AraBERT أو API خارجي)",
+  "parallel_rewrite": {
+    "directory": "C:\\elsawt-elmahalli-2",
+    "framework": "Next.js 16 + Turbopack",
+    "auth": "NextAuth v5 (Credentials provider, JWT, bcrypt, RBAC)",
+    "database": "PostgreSQL + Prisma ORM",
+    "completed_sprints": [
+      "Sprint 1.1 — Database Recovery & Migration",
+      "Sprint 1.2 — Footer Optimization",
+      "Sprint 1.3 — Header & Top Homepage Editorial",
+      "Sprint 1.4 — Premium Editorial Homepage",
+      "Sprint 1.5 — Auth.js + RBAC Foundation"
+    ],
+    "next_priority": "News CRUD API + Admin Dashboard data connection"
+  },
+  "next_priority": "دمج Next.js rewrite في هذا المستودع (branch أو مجلد next/)",
   "tech_stack": {
-    "runtime": "Node.js + Express",
-    "database": "JSON files (default) + SQLite via better-sqlite3",
-    "frontend": "Vanilla HTML5 + CSS3 + JavaScript",
-    "security": "Helmet.js + JWT + bcrypt + express-rate-limit + CSRF",
+    "runtime": "Node.js + Express (production) / Next.js 16 (rewrite)",
+    "database": "JSON + SQLite (Express) / PostgreSQL + Prisma (Next.js)",
+    "frontend": "Vanilla HTML5+CSS3+JS (Express) / React+Tailwind (Next.js)",
+    "security": "Helmet.js+JWT+bcrypt (Express) / NextAuth v5+bcrypt (Next.js)",
     "scheduling": "node-cron",
     "scraping": "axios + cheerio + rss-parser",
     "hosting": "HostingGuru.io (auto-deploy from GitHub)",

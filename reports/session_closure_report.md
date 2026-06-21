@@ -1,74 +1,86 @@
-# تقرير إغلاق الجلسة — Session Closure Report
+# تقرير إغلاق الجلسة — Session 2 Closure Report
 
-**التاريخ:** 2026-06-21  
-**المشروع:** school-news-ai — الصوت المحلي  
-**الحالة:** جلسة مراجعة وتوثيق (Session 1)  
+**التاريخ:** 2026-06-21 15:32 +01:00  
+**المشروع:** school-news-ai (F:\My project\school-news-ai) + elsawt-elmahalli-2 (Next.js rewrite)  
+**المرحلة الحالية:** `PARALLEL_REWRITE`  
+**الإصدار:** v0.7.0 (Express.js) / v3.2.0 (Next.js sprints 1.1–1.5)
 
 ---
 
 ## ملخص الجلسة
 
-هذه الجلسة كانت جلسة مراجعة شاملة للمشروع بعد إنجاز المرحلة 3C (منصة الفوترة والاشتراكات). لم يتم إجراء أي تغييرات برمجية جديدة — تم التركيز على:
+جلسة مزدوجة المسار:
+1. **مراجعة المشروع الحالي (Express.js)** — تحليل Phase 1–3C، إنشاء ذاكرة المشروع (`memory/`، `reports/`)
+2. **إعادة كتابة Next.js 16 (C:\elsawt-elmahalli-2)** — من الصفر: Database → Footer → Header → Premium Homepage → Auth.js + RBAC
 
-1. **مراجعة الملفات الأساسية**: README، CHANGELOG (الإصدار v3.2.0)، ROADMAP، NEXT_SESSION، PHASE_3C_REPORT، SESSION_CLOSE_REPORT، SESSION_SUMMARY، RISKS، PROJECT_MAP، ARCHITECTURE
-2. **فحص Git Log**: آخر 10 commits، تأكيد أن Working Tree نظيف (فقط ملفا بيانات معدّلان)
-3. **فهم مسار التطوير الكامل**: من v0.9.0 (صورة) → v3.2.0 (فوترة)
-4. **إنشاء ذاكرة المشروع**: `memory/session_log.md`، `memory/project_state.json`، `memory/changelog.md`، `memory/decisions.md`
-5. **إنشاء تقرير إغلاق الجلسة**: هذا الملف
+## ما تم إنجازه
 
-## نسبة التقدم التقديرية
+### مسار 1 — توثيق المشروع الحالي (هذا المستودع)
+- تحليل شامل للمشروع (34 ملفاً، 16 مرحلة، v0.9.0 → v3.2.0)
+- إنشاء `memory/session_log.md`، `memory/project_state.json`، `memory/changelog.md`، `memory/decisions.md`
+- إنشاء `reports/session_closure_report.md`، `reports/git_foundation_report.md`
+- تأسيس Git (commit + tag v0.7.0 + push)
 
-| المكون | التقدم | الحالة |
+### مسار 2 — Next.js Rewrite (C:\elsawt-elmahalli-2)
+
+| Sprint | المكون | الحالة |
 |--------|--------|--------|
-| الأمان (JWT, bcrypt, rate-limit, CSRF) | 100% | ✅ مكتمل |
-| طبقة البيانات (DAL + Repositories + Backup) | 100% | ✅ مكتمل |
-| هجرة SQLite | 100% | ✅ مكتمل |
-| جمع المحتوى (Scraper Factory + 4 collectors) | 100% | ✅ مكتمل |
-| الذكاء التحريري (تصنيف + تدقيق + كتابة + نشر) | 100% | ✅ مكتمل |
-| إعادة تصميم الصفحة الرئيسية | 100% | ✅ مكتمل |
-| نظام الإعلانات | 100% | ✅ مكتمل |
-| بنية متعددة المنصات (SaaS) | 100% | ✅ مكتمل |
-| إدارة المنصات والعلامة التجارية | 100% | ✅ مكتمل |
-| نظام الفوترة والاشتراكات | 100% | ✅ مكتمل |
-| **ML Classifier (AraBERT/API)** | 0% | ⏳ pending |
-| **LLM Writer (GPT/Gemini)** | 0% | ⏳ pending |
-| **Fact Validator خارجي** | 0% | ⏳ pending |
-| **تحسينات SEO (sitemap.xml)** | 0% | ⏳ pending |
-| **نطاقات مخصصة** | 0% | ⏳ pending |
-| **بوابة دفع (Stripe/PayPal)** | 0% | ⏳ pending |
-| **اختبارات (Unit/Integration/E2E)** | 0% | ⏳ pending |
-| **CDN + تحسين الأداء** | 0% | ⏳ pending |
+| 1.1 | Database Recovery (PostgreSQL + Prisma + Seed) | ✅ |
+| 1.2 | Footer Optimization (6 columns, RTL) | ✅ |
+| 1.3 | Header & Top Homepage Editorial | ✅ |
+| 1.4 | Premium Editorial Homepage (Hero, Weather, Services) | ✅ |
+| 1.5 | Auth.js + RBAC (login, admin layout, middleware, seed) | ✅ |
 
-**التقدير الإجمالي:** ≈ 75% (14/18 مرحلة مكتملة)
+### مشاكل محلولة خلال البناء
+1. Edge Runtime + Prisma → استبدال middleware بـ admin layout
+2. `next-auth/jwt` module augmentation → cast `(token as any)`
+3. `useSearchParams()` بدون Suspense → `<Suspense>` wrapper
+4. خط `Cairo variable` في login → إزالة
 
-## المخاطر الحالية
+## النسبة التقديرية للتقدم
 
-| # | الخطر | المستوى | الإجراء |
-|---|-------|---------|--------|
-| 1 | **JSON DB ليس للكتابة المتزامنة** — قد يسبب فساد بيانات مع Cron jobs | 🔴 عالي | استخدام SQLite (DB_TYPE=sqlite) |
-| 2 | **لا اختبارات (Unit/Integration/E2E)** — تغيير قد يكسر شيئاً دون اكتشاف | 🟡 متوسط | إضافة اختبارات في Phase 5 |
-| 3 | **لا Cache Invalidation** — عرض بيانات قديمة | 🟡 متوسط | إضافة طبقة تخزين مؤقت (Redis/LRU) |
-| 4 | **لا CDN** — تأخير في تحميل الصور | 🟢 منخفض | CDN (Cloudflare) في Phase 5 |
-| 5 | **لا مراقبة وإنذار** — قد يحدث عطل دون علم | 🟡 متوسط | إضافة monitoring في Phase 5 |
+| المشروع | التقدم |
+|---------|--------|
+| Express.js (Phase 0–3C) | 100% (مكتمل، 16 مرحلة) |
+| Next.js rewrite | ~25% (5 sprints من ~20 مقدرة) |
 
-## توصية الجلسة القادمة
+## Git Status
 
-### الأولوية القصوى: 🔴 ML Classifier
+```
+الفرع:        main
+آخر commit:   6ec4a4c "Sprint G1: إضافة تقرير Git Foundation وتحديث project_state"
+البيانات:      2 auto-generated files غير متتبعة
+البعيد:       origin → https://github.com/ZoheirComputerVision/school-news-ai.git
+النشر:        تلقائي عبر HostingGuru.io
+```
 
-استبدال التصنيف النصي الحالي (keyword-based مع 9 فئات) بـ ML classifier حقيقي:
+## المشاكل المفتوحة
 
-1. **AraBERT** — نموذج عربي مفتوح المصدر للتصنيف النصي (دقة أعلى من keywords)
-2. **أو API خارجي** — مثل Google Cloud Natural Language أو OpenAI
+| # | المشكلة | المستوى |
+|---|---------|---------|
+| 1 | Next.js rewrite في مجلد منفصل (C:\) — ليس في هذا المستودع | 🔴 |
+| 2 | Express.js لا يزال الإنتاج — Next.js لم يُنشر بعد | 🟡 |
+| 3 | Phase 4 (ML, LLM, SEO, Payment) معلقة على Express.js | 🟡 |
+| 4 | لا اختبارات في كلا المشروعين | 🟡 |
+| 5 | لا CDN / مراقبة | 🟢 |
 
-**المبرر**: التصنيف الحالي يعتمد على كلمات مفتاحية بوزن ثابت (0.25/0.15/0.10) — هذا يعطي نتائج مقبولة لكنها ليست دقيقة بما يكفي لمحتوى إخباري حقيقي. ML classifier سيرفع دقة التصنيف ويحسن جودة المحتوى المنشور تلقائياً.
+## التوصية للجلسة القادمة
 
-### المهام الإضافية للجلسة القادمة:
+1. **دمج Next.js rewrite في هذا المستودع** — إنشاء فرع `next-rewrite` أو مجلد `next/`
+2. **أخبار CRUD** — واجهة برمجة التطبيقات + صفحة الإدارة لإنشاء/تعديل/حذف المقالات
+3. **ربط لوحة التحكم** — توصيل admin dashboard ببيانات حقيقية من Prisma
+4. **هجرة خط أنابيب المحتوى** — نقل Express.js scraper/classifier/publisher إلى Next.js تدريجياً
+5. **نشر Next.js** — الإعداد للنشر على Vercel أو HostingGuru.io
 
-| الأولوية | المهمة | الملفات المستهدفة |
-|---------|--------|-------------------|
-| 🔴 عالية | ML Classifier (AraBERT/API) | `modules/classifier.js` |
-| 🔴 عالية | LLM Writer (GPT/Gemini) | `modules/writer.js` |
-| 🟡 متوسطة | External Fact Validator | `modules/fact-validator.js` |
-| 🟡 متوسطة | SEO: sitemap.xml | `public/`, `routes/` |
-| 🟢 منخفضة | Custom domain support | `modules/tenant/`, `middleware/` |
-| 🟢 منخفضة | Payment gateway (Stripe/PayPal) | `modules/billing/`, `routes/billing.js` |
+## نقطة الاستئناف
+
+```
+الملف:    C:\elsawt-elmahalli-2\src\lib\auth.ts
+الفرع:    main (في C:\elsawt-elmahalli-2)
+الحالة:   ✅ build ناجح، TypeScript نظيف، 12 route (5 ديناميكي)
+التالي:   إضافة News API routes + admin CRUD pages
+```
+
+---
+
+*تم الإعداد بواسطة: opencode (big-pickle)*
